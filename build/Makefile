@@ -257,6 +257,19 @@ gtest_main/fast:
 .PHONY : gtest_main/fast
 
 #=============================================================================
+# Target rules for targets named image_processing_node
+
+# Build rule for target.
+image_processing_node: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 image_processing_node
+.PHONY : image_processing_node
+
+# fast build rule for target.
+image_processing_node/fast:
+	$(MAKE) -f cic/CMakeFiles/image_processing_node.dir/build.make cic/CMakeFiles/image_processing_node.dir/build
+.PHONY : image_processing_node/fast
+
+#=============================================================================
 # Target rules for targets named rosgraph_msgs_generate_messages_nodejs
 
 # Build rule for target.
@@ -601,6 +614,7 @@ help:
 	@echo "... test"
 	@echo "... gtest"
 	@echo "... gtest_main"
+	@echo "... image_processing_node"
 	@echo "... rosgraph_msgs_generate_messages_nodejs"
 	@echo "... geometry_msgs_generate_messages_nodejs"
 	@echo "... std_msgs_generate_messages_py"

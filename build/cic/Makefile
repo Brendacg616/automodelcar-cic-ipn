@@ -101,17 +101,6 @@ test/fast: test
 
 .PHONY : test/fast
 
-# Special rule for the target install/local
-install/local: preinstall
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Installing only the local directory..."
-	/usr/bin/cmake -DCMAKE_INSTALL_LOCAL_ONLY=1 -P cmake_install.cmake
-.PHONY : install/local
-
-# Special rule for the target install/local
-install/local/fast: install/local
-
-.PHONY : install/local/fast
-
 # Special rule for the target install/strip
 install/strip: preinstall
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Installing the project stripped..."
@@ -122,6 +111,17 @@ install/strip: preinstall
 install/strip/fast: install/strip
 
 .PHONY : install/strip/fast
+
+# Special rule for the target install/local
+install/local: preinstall
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Installing only the local directory..."
+	/usr/bin/cmake -DCMAKE_INSTALL_LOCAL_ONLY=1 -P cmake_install.cmake
+.PHONY : install/local
+
+# Special rule for the target install/local
+install/local/fast: install/local
+
+.PHONY : install/local/fast
 
 # Special rule for the target list_install_components
 list_install_components:
@@ -164,6 +164,21 @@ preinstall/fast:
 depend:
 	cd /home/conilo/Workspace/automodelcar-cic-ipn/build && $(CMAKE_COMMAND) -H$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR) --check-build-system CMakeFiles/Makefile.cmake 1
 .PHONY : depend
+
+# Convenience name for target.
+cic/CMakeFiles/image_processing_node.dir/rule:
+	cd /home/conilo/Workspace/automodelcar-cic-ipn/build && $(MAKE) -f CMakeFiles/Makefile2 cic/CMakeFiles/image_processing_node.dir/rule
+.PHONY : cic/CMakeFiles/image_processing_node.dir/rule
+
+# Convenience name for target.
+image_processing_node: cic/CMakeFiles/image_processing_node.dir/rule
+
+.PHONY : image_processing_node
+
+# fast build rule for target.
+image_processing_node/fast:
+	cd /home/conilo/Workspace/automodelcar-cic-ipn/build && $(MAKE) -f cic/CMakeFiles/image_processing_node.dir/build.make cic/CMakeFiles/image_processing_node.dir/build
+.PHONY : image_processing_node/fast
 
 # Convenience name for target.
 cic/CMakeFiles/rosgraph_msgs_generate_messages_nodejs.dir/rule:
@@ -540,6 +555,33 @@ roscpp_generate_messages_nodejs/fast:
 	cd /home/conilo/Workspace/automodelcar-cic-ipn/build && $(MAKE) -f cic/CMakeFiles/roscpp_generate_messages_nodejs.dir/build.make cic/CMakeFiles/roscpp_generate_messages_nodejs.dir/build
 .PHONY : roscpp_generate_messages_nodejs/fast
 
+src/nodes/ImageProcessing/ImageProcessing.o: src/nodes/ImageProcessing/ImageProcessing.cpp.o
+
+.PHONY : src/nodes/ImageProcessing/ImageProcessing.o
+
+# target to build an object file
+src/nodes/ImageProcessing/ImageProcessing.cpp.o:
+	cd /home/conilo/Workspace/automodelcar-cic-ipn/build && $(MAKE) -f cic/CMakeFiles/image_processing_node.dir/build.make cic/CMakeFiles/image_processing_node.dir/src/nodes/ImageProcessing/ImageProcessing.cpp.o
+.PHONY : src/nodes/ImageProcessing/ImageProcessing.cpp.o
+
+src/nodes/ImageProcessing/ImageProcessing.i: src/nodes/ImageProcessing/ImageProcessing.cpp.i
+
+.PHONY : src/nodes/ImageProcessing/ImageProcessing.i
+
+# target to preprocess a source file
+src/nodes/ImageProcessing/ImageProcessing.cpp.i:
+	cd /home/conilo/Workspace/automodelcar-cic-ipn/build && $(MAKE) -f cic/CMakeFiles/image_processing_node.dir/build.make cic/CMakeFiles/image_processing_node.dir/src/nodes/ImageProcessing/ImageProcessing.cpp.i
+.PHONY : src/nodes/ImageProcessing/ImageProcessing.cpp.i
+
+src/nodes/ImageProcessing/ImageProcessing.s: src/nodes/ImageProcessing/ImageProcessing.cpp.s
+
+.PHONY : src/nodes/ImageProcessing/ImageProcessing.s
+
+# target to generate assembly for a file
+src/nodes/ImageProcessing/ImageProcessing.cpp.s:
+	cd /home/conilo/Workspace/automodelcar-cic-ipn/build && $(MAKE) -f cic/CMakeFiles/image_processing_node.dir/build.make cic/CMakeFiles/image_processing_node.dir/src/nodes/ImageProcessing/ImageProcessing.cpp.s
+.PHONY : src/nodes/ImageProcessing/ImageProcessing.cpp.s
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -550,8 +592,9 @@ help:
 	@echo "... rebuild_cache"
 	@echo "... edit_cache"
 	@echo "... test"
-	@echo "... install/local"
 	@echo "... install/strip"
+	@echo "... install/local"
+	@echo "... image_processing_node"
 	@echo "... rosgraph_msgs_generate_messages_nodejs"
 	@echo "... geometry_msgs_generate_messages_nodejs"
 	@echo "... std_msgs_generate_messages_py"
@@ -578,6 +621,9 @@ help:
 	@echo "... rosgraph_msgs_generate_messages_py"
 	@echo "... rosgraph_msgs_generate_messages_lisp"
 	@echo "... roscpp_generate_messages_nodejs"
+	@echo "... src/nodes/ImageProcessing/ImageProcessing.o"
+	@echo "... src/nodes/ImageProcessing/ImageProcessing.i"
+	@echo "... src/nodes/ImageProcessing/ImageProcessing.s"
 .PHONY : help
 
 
