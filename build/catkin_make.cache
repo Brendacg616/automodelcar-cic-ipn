@@ -1,0 +1,2 @@
+cic
+-DCMAKE_BUILD_TYPE=DEBUG -DCATKIN_DEVEL_PREFIX=/home/conilo/Workspace/automodelcar-cic-ipn/devel -DCMAKE_INSTALL_PREFIX=/home/conilo/Workspace/automodelcar-cic-ipn/install -G Unix Makefiles

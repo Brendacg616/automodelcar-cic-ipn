@@ -1,8 +1,8 @@
-prefix=/home/conilo/Workspace/automodel-cic/devel
+prefix=/home/conilo/Workspace/automodelcar-cic-ipn/devel
 
 Name: cic
 Description: Description of cic
 Version: 1.1.0
 Cflags: 
-Libs: -L/home/conilo/Workspace/automodel-cic/devel/lib 
+Libs: -L/home/conilo/Workspace/automodelcar-cic-ipn/devel/lib 
 Requires: 
