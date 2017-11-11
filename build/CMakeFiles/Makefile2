@@ -245,7 +245,7 @@ gtest/preinstall:
 gtest/CMakeFiles/gtest.dir/all:
 	$(MAKE) -f gtest/CMakeFiles/gtest.dir/build.make gtest/CMakeFiles/gtest.dir/depend
 	$(MAKE) -f gtest/CMakeFiles/gtest.dir/build.make gtest/CMakeFiles/gtest.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/conilo/Workspace/automodelcar-cic-ipn/build/CMakeFiles --progress-num=1,2 "Built target gtest"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/conilo/Workspace/automodelcar-cic-ipn/build/CMakeFiles --progress-num=3,4 "Built target gtest"
 .PHONY : gtest/CMakeFiles/gtest.dir/all
 
 # Build rule for subdir invocation for target.
@@ -277,7 +277,7 @@ clean: gtest/CMakeFiles/gtest.dir/clean
 gtest/CMakeFiles/gtest_main.dir/all: gtest/CMakeFiles/gtest.dir/all
 	$(MAKE) -f gtest/CMakeFiles/gtest_main.dir/build.make gtest/CMakeFiles/gtest_main.dir/depend
 	$(MAKE) -f gtest/CMakeFiles/gtest_main.dir/build.make gtest/CMakeFiles/gtest_main.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/conilo/Workspace/automodelcar-cic-ipn/build/CMakeFiles --progress-num=3,4 "Built target gtest_main"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/conilo/Workspace/automodelcar-cic-ipn/build/CMakeFiles --progress-num=5,6 "Built target gtest_main"
 .PHONY : gtest/CMakeFiles/gtest_main.dir/all
 
 # Build rule for subdir invocation for target.
@@ -306,12 +306,12 @@ clean: gtest/CMakeFiles/gtest_main.dir/clean
 # Directory level rules for directory cic
 
 # Convenience name for "all" pass in the directory.
-cic/all: cic/CMakeFiles/image_processing_node.dir/all
+cic/all: cic/CMakeFiles/ImageProcessing.dir/all
 
 .PHONY : cic/all
 
 # Convenience name for "clean" pass in the directory.
-cic/clean: cic/CMakeFiles/image_processing_node.dir/clean
+cic/clean: cic/CMakeFiles/ImageProcessing.dir/clean
 cic/clean: cic/CMakeFiles/rosgraph_msgs_generate_messages_nodejs.dir/clean
 cic/clean: cic/CMakeFiles/geometry_msgs_generate_messages_nodejs.dir/clean
 cic/clean: cic/CMakeFiles/std_msgs_generate_messages_py.dir/clean
@@ -346,63 +346,63 @@ cic/preinstall:
 .PHONY : cic/preinstall
 
 #=============================================================================
-# Target rules for target cic/CMakeFiles/image_processing_node.dir
+# Target rules for target cic/CMakeFiles/ImageProcessing.dir
 
 # All Build rule for target.
-cic/CMakeFiles/image_processing_node.dir/all: cic/CMakeFiles/rosgraph_msgs_generate_messages_nodejs.dir/all
-cic/CMakeFiles/image_processing_node.dir/all: cic/CMakeFiles/geometry_msgs_generate_messages_nodejs.dir/all
-cic/CMakeFiles/image_processing_node.dir/all: cic/CMakeFiles/std_msgs_generate_messages_py.dir/all
-cic/CMakeFiles/image_processing_node.dir/all: cic/CMakeFiles/geometry_msgs_generate_messages_eus.dir/all
-cic/CMakeFiles/image_processing_node.dir/all: cic/CMakeFiles/roscpp_generate_messages_cpp.dir/all
-cic/CMakeFiles/image_processing_node.dir/all: cic/CMakeFiles/geometry_msgs_generate_messages_py.dir/all
-cic/CMakeFiles/image_processing_node.dir/all: cic/CMakeFiles/sensor_msgs_generate_messages_cpp.dir/all
-cic/CMakeFiles/image_processing_node.dir/all: cic/CMakeFiles/sensor_msgs_generate_messages_lisp.dir/all
-cic/CMakeFiles/image_processing_node.dir/all: cic/CMakeFiles/sensor_msgs_generate_messages_py.dir/all
-cic/CMakeFiles/image_processing_node.dir/all: cic/CMakeFiles/std_msgs_generate_messages_cpp.dir/all
-cic/CMakeFiles/image_processing_node.dir/all: cic/CMakeFiles/rosgraph_msgs_generate_messages_cpp.dir/all
-cic/CMakeFiles/image_processing_node.dir/all: cic/CMakeFiles/sensor_msgs_generate_messages_eus.dir/all
-cic/CMakeFiles/image_processing_node.dir/all: cic/CMakeFiles/geometry_msgs_generate_messages_cpp.dir/all
-cic/CMakeFiles/image_processing_node.dir/all: cic/CMakeFiles/sensor_msgs_generate_messages_nodejs.dir/all
-cic/CMakeFiles/image_processing_node.dir/all: cic/CMakeFiles/roscpp_generate_messages_py.dir/all
-cic/CMakeFiles/image_processing_node.dir/all: cic/CMakeFiles/rosgraph_msgs_generate_messages_eus.dir/all
-cic/CMakeFiles/image_processing_node.dir/all: cic/CMakeFiles/geometry_msgs_generate_messages_lisp.dir/all
-cic/CMakeFiles/image_processing_node.dir/all: cic/CMakeFiles/std_msgs_generate_messages_lisp.dir/all
-cic/CMakeFiles/image_processing_node.dir/all: cic/CMakeFiles/std_msgs_generate_messages_nodejs.dir/all
-cic/CMakeFiles/image_processing_node.dir/all: cic/CMakeFiles/std_msgs_generate_messages_eus.dir/all
-cic/CMakeFiles/image_processing_node.dir/all: cic/CMakeFiles/roscpp_generate_messages_lisp.dir/all
-cic/CMakeFiles/image_processing_node.dir/all: cic/CMakeFiles/roscpp_generate_messages_eus.dir/all
-cic/CMakeFiles/image_processing_node.dir/all: cic/CMakeFiles/rosgraph_msgs_generate_messages_py.dir/all
-cic/CMakeFiles/image_processing_node.dir/all: cic/CMakeFiles/rosgraph_msgs_generate_messages_lisp.dir/all
-cic/CMakeFiles/image_processing_node.dir/all: cic/CMakeFiles/roscpp_generate_messages_nodejs.dir/all
-	$(MAKE) -f cic/CMakeFiles/image_processing_node.dir/build.make cic/CMakeFiles/image_processing_node.dir/depend
-	$(MAKE) -f cic/CMakeFiles/image_processing_node.dir/build.make cic/CMakeFiles/image_processing_node.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/conilo/Workspace/automodelcar-cic-ipn/build/CMakeFiles --progress-num=5,6 "Built target image_processing_node"
-.PHONY : cic/CMakeFiles/image_processing_node.dir/all
+cic/CMakeFiles/ImageProcessing.dir/all: cic/CMakeFiles/rosgraph_msgs_generate_messages_nodejs.dir/all
+cic/CMakeFiles/ImageProcessing.dir/all: cic/CMakeFiles/geometry_msgs_generate_messages_nodejs.dir/all
+cic/CMakeFiles/ImageProcessing.dir/all: cic/CMakeFiles/std_msgs_generate_messages_py.dir/all
+cic/CMakeFiles/ImageProcessing.dir/all: cic/CMakeFiles/geometry_msgs_generate_messages_eus.dir/all
+cic/CMakeFiles/ImageProcessing.dir/all: cic/CMakeFiles/roscpp_generate_messages_cpp.dir/all
+cic/CMakeFiles/ImageProcessing.dir/all: cic/CMakeFiles/geometry_msgs_generate_messages_py.dir/all
+cic/CMakeFiles/ImageProcessing.dir/all: cic/CMakeFiles/sensor_msgs_generate_messages_cpp.dir/all
+cic/CMakeFiles/ImageProcessing.dir/all: cic/CMakeFiles/sensor_msgs_generate_messages_lisp.dir/all
+cic/CMakeFiles/ImageProcessing.dir/all: cic/CMakeFiles/sensor_msgs_generate_messages_py.dir/all
+cic/CMakeFiles/ImageProcessing.dir/all: cic/CMakeFiles/std_msgs_generate_messages_cpp.dir/all
+cic/CMakeFiles/ImageProcessing.dir/all: cic/CMakeFiles/rosgraph_msgs_generate_messages_cpp.dir/all
+cic/CMakeFiles/ImageProcessing.dir/all: cic/CMakeFiles/sensor_msgs_generate_messages_eus.dir/all
+cic/CMakeFiles/ImageProcessing.dir/all: cic/CMakeFiles/geometry_msgs_generate_messages_cpp.dir/all
+cic/CMakeFiles/ImageProcessing.dir/all: cic/CMakeFiles/sensor_msgs_generate_messages_nodejs.dir/all
+cic/CMakeFiles/ImageProcessing.dir/all: cic/CMakeFiles/roscpp_generate_messages_py.dir/all
+cic/CMakeFiles/ImageProcessing.dir/all: cic/CMakeFiles/rosgraph_msgs_generate_messages_eus.dir/all
+cic/CMakeFiles/ImageProcessing.dir/all: cic/CMakeFiles/geometry_msgs_generate_messages_lisp.dir/all
+cic/CMakeFiles/ImageProcessing.dir/all: cic/CMakeFiles/std_msgs_generate_messages_lisp.dir/all
+cic/CMakeFiles/ImageProcessing.dir/all: cic/CMakeFiles/std_msgs_generate_messages_nodejs.dir/all
+cic/CMakeFiles/ImageProcessing.dir/all: cic/CMakeFiles/std_msgs_generate_messages_eus.dir/all
+cic/CMakeFiles/ImageProcessing.dir/all: cic/CMakeFiles/roscpp_generate_messages_lisp.dir/all
+cic/CMakeFiles/ImageProcessing.dir/all: cic/CMakeFiles/roscpp_generate_messages_eus.dir/all
+cic/CMakeFiles/ImageProcessing.dir/all: cic/CMakeFiles/rosgraph_msgs_generate_messages_py.dir/all
+cic/CMakeFiles/ImageProcessing.dir/all: cic/CMakeFiles/rosgraph_msgs_generate_messages_lisp.dir/all
+cic/CMakeFiles/ImageProcessing.dir/all: cic/CMakeFiles/roscpp_generate_messages_nodejs.dir/all
+	$(MAKE) -f cic/CMakeFiles/ImageProcessing.dir/build.make cic/CMakeFiles/ImageProcessing.dir/depend
+	$(MAKE) -f cic/CMakeFiles/ImageProcessing.dir/build.make cic/CMakeFiles/ImageProcessing.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/conilo/Workspace/automodelcar-cic-ipn/build/CMakeFiles --progress-num=1,2 "Built target ImageProcessing"
+.PHONY : cic/CMakeFiles/ImageProcessing.dir/all
 
 # Include target in all.
-all: cic/CMakeFiles/image_processing_node.dir/all
+all: cic/CMakeFiles/ImageProcessing.dir/all
 
 .PHONY : all
 
 # Build rule for subdir invocation for target.
-cic/CMakeFiles/image_processing_node.dir/rule: cmake_check_build_system
+cic/CMakeFiles/ImageProcessing.dir/rule: cmake_check_build_system
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/conilo/Workspace/automodelcar-cic-ipn/build/CMakeFiles 2
-	$(MAKE) -f CMakeFiles/Makefile2 cic/CMakeFiles/image_processing_node.dir/all
+	$(MAKE) -f CMakeFiles/Makefile2 cic/CMakeFiles/ImageProcessing.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/conilo/Workspace/automodelcar-cic-ipn/build/CMakeFiles 0
-.PHONY : cic/CMakeFiles/image_processing_node.dir/rule
+.PHONY : cic/CMakeFiles/ImageProcessing.dir/rule
 
 # Convenience name for target.
-image_processing_node: cic/CMakeFiles/image_processing_node.dir/rule
+ImageProcessing: cic/CMakeFiles/ImageProcessing.dir/rule
 
-.PHONY : image_processing_node
-
-# clean rule for target.
-cic/CMakeFiles/image_processing_node.dir/clean:
-	$(MAKE) -f cic/CMakeFiles/image_processing_node.dir/build.make cic/CMakeFiles/image_processing_node.dir/clean
-.PHONY : cic/CMakeFiles/image_processing_node.dir/clean
+.PHONY : ImageProcessing
 
 # clean rule for target.
-clean: cic/CMakeFiles/image_processing_node.dir/clean
+cic/CMakeFiles/ImageProcessing.dir/clean:
+	$(MAKE) -f cic/CMakeFiles/ImageProcessing.dir/build.make cic/CMakeFiles/ImageProcessing.dir/clean
+.PHONY : cic/CMakeFiles/ImageProcessing.dir/clean
+
+# clean rule for target.
+clean: cic/CMakeFiles/ImageProcessing.dir/clean
 
 .PHONY : clean
 

@@ -101,17 +101,6 @@ test/fast: test
 
 .PHONY : test/fast
 
-# Special rule for the target install/strip
-install/strip: preinstall
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Installing the project stripped..."
-	/usr/bin/cmake -DCMAKE_INSTALL_DO_STRIP=1 -P cmake_install.cmake
-.PHONY : install/strip
-
-# Special rule for the target install/strip
-install/strip/fast: install/strip
-
-.PHONY : install/strip/fast
-
 # Special rule for the target install/local
 install/local: preinstall
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Installing only the local directory..."
@@ -122,6 +111,17 @@ install/local: preinstall
 install/local/fast: install/local
 
 .PHONY : install/local/fast
+
+# Special rule for the target install/strip
+install/strip: preinstall
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Installing the project stripped..."
+	/usr/bin/cmake -DCMAKE_INSTALL_DO_STRIP=1 -P cmake_install.cmake
+.PHONY : install/strip
+
+# Special rule for the target install/strip
+install/strip/fast: install/strip
+
+.PHONY : install/strip/fast
 
 # Special rule for the target list_install_components
 list_install_components:
@@ -166,19 +166,19 @@ depend:
 .PHONY : depend
 
 # Convenience name for target.
-cic/CMakeFiles/image_processing_node.dir/rule:
-	cd /home/conilo/Workspace/automodelcar-cic-ipn/build && $(MAKE) -f CMakeFiles/Makefile2 cic/CMakeFiles/image_processing_node.dir/rule
-.PHONY : cic/CMakeFiles/image_processing_node.dir/rule
+cic/CMakeFiles/ImageProcessing.dir/rule:
+	cd /home/conilo/Workspace/automodelcar-cic-ipn/build && $(MAKE) -f CMakeFiles/Makefile2 cic/CMakeFiles/ImageProcessing.dir/rule
+.PHONY : cic/CMakeFiles/ImageProcessing.dir/rule
 
 # Convenience name for target.
-image_processing_node: cic/CMakeFiles/image_processing_node.dir/rule
+ImageProcessing: cic/CMakeFiles/ImageProcessing.dir/rule
 
-.PHONY : image_processing_node
+.PHONY : ImageProcessing
 
 # fast build rule for target.
-image_processing_node/fast:
-	cd /home/conilo/Workspace/automodelcar-cic-ipn/build && $(MAKE) -f cic/CMakeFiles/image_processing_node.dir/build.make cic/CMakeFiles/image_processing_node.dir/build
-.PHONY : image_processing_node/fast
+ImageProcessing/fast:
+	cd /home/conilo/Workspace/automodelcar-cic-ipn/build && $(MAKE) -f cic/CMakeFiles/ImageProcessing.dir/build.make cic/CMakeFiles/ImageProcessing.dir/build
+.PHONY : ImageProcessing/fast
 
 # Convenience name for target.
 cic/CMakeFiles/rosgraph_msgs_generate_messages_nodejs.dir/rule:
@@ -561,7 +561,7 @@ src/nodes/ImageProcessing/ImageProcessing.o: src/nodes/ImageProcessing/ImageProc
 
 # target to build an object file
 src/nodes/ImageProcessing/ImageProcessing.cpp.o:
-	cd /home/conilo/Workspace/automodelcar-cic-ipn/build && $(MAKE) -f cic/CMakeFiles/image_processing_node.dir/build.make cic/CMakeFiles/image_processing_node.dir/src/nodes/ImageProcessing/ImageProcessing.cpp.o
+	cd /home/conilo/Workspace/automodelcar-cic-ipn/build && $(MAKE) -f cic/CMakeFiles/ImageProcessing.dir/build.make cic/CMakeFiles/ImageProcessing.dir/src/nodes/ImageProcessing/ImageProcessing.cpp.o
 .PHONY : src/nodes/ImageProcessing/ImageProcessing.cpp.o
 
 src/nodes/ImageProcessing/ImageProcessing.i: src/nodes/ImageProcessing/ImageProcessing.cpp.i
@@ -570,7 +570,7 @@ src/nodes/ImageProcessing/ImageProcessing.i: src/nodes/ImageProcessing/ImageProc
 
 # target to preprocess a source file
 src/nodes/ImageProcessing/ImageProcessing.cpp.i:
-	cd /home/conilo/Workspace/automodelcar-cic-ipn/build && $(MAKE) -f cic/CMakeFiles/image_processing_node.dir/build.make cic/CMakeFiles/image_processing_node.dir/src/nodes/ImageProcessing/ImageProcessing.cpp.i
+	cd /home/conilo/Workspace/automodelcar-cic-ipn/build && $(MAKE) -f cic/CMakeFiles/ImageProcessing.dir/build.make cic/CMakeFiles/ImageProcessing.dir/src/nodes/ImageProcessing/ImageProcessing.cpp.i
 .PHONY : src/nodes/ImageProcessing/ImageProcessing.cpp.i
 
 src/nodes/ImageProcessing/ImageProcessing.s: src/nodes/ImageProcessing/ImageProcessing.cpp.s
@@ -579,7 +579,7 @@ src/nodes/ImageProcessing/ImageProcessing.s: src/nodes/ImageProcessing/ImageProc
 
 # target to generate assembly for a file
 src/nodes/ImageProcessing/ImageProcessing.cpp.s:
-	cd /home/conilo/Workspace/automodelcar-cic-ipn/build && $(MAKE) -f cic/CMakeFiles/image_processing_node.dir/build.make cic/CMakeFiles/image_processing_node.dir/src/nodes/ImageProcessing/ImageProcessing.cpp.s
+	cd /home/conilo/Workspace/automodelcar-cic-ipn/build && $(MAKE) -f cic/CMakeFiles/ImageProcessing.dir/build.make cic/CMakeFiles/ImageProcessing.dir/src/nodes/ImageProcessing/ImageProcessing.cpp.s
 .PHONY : src/nodes/ImageProcessing/ImageProcessing.cpp.s
 
 # Help Target
@@ -592,9 +592,9 @@ help:
 	@echo "... rebuild_cache"
 	@echo "... edit_cache"
 	@echo "... test"
-	@echo "... install/strip"
 	@echo "... install/local"
-	@echo "... image_processing_node"
+	@echo "... install/strip"
+	@echo "... ImageProcessing"
 	@echo "... rosgraph_msgs_generate_messages_nodejs"
 	@echo "... geometry_msgs_generate_messages_nodejs"
 	@echo "... std_msgs_generate_messages_py"
