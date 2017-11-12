@@ -176,7 +176,7 @@ void imageCb(const sensor_msgs::ImageConstPtr& msg)
     // Node execution time calculation and publication
     int e2 = cv::getTickCount();
     float t = (e2-e1) / cv::getTickFrequency();
-    ROS_INFO("frame time: %f----------------------block end",t);
+    ROS_INFO("frame time: %f",t);
      
   }
 };
@@ -198,7 +198,7 @@ int main(int argc, char** argv)
   ros::param::get("~p2", b);
   ros::param::get("~p3", c);
   ros::param::get("~p4", d);
-
+ 
   // Image callback
   ImageProssesing ip;
   ros::spin();
