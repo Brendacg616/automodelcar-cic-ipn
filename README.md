@@ -21,11 +21,11 @@ In order to start working with the code, it's necesary to clone the repository; 
 > git clone https://github.com/Conilo/automodelcar-cic-ipn.git
 
 ## Build the code:
-Then it's necesarry to compile the code (also after modifiying any file or node source). To compile the code, type:
+Then it's necesarry to compile the code (also after modifiying any file or node source). To do so, type:
 
 > bash compile.bash
 
-To compile the code en "release mode" add the `-s` flag:
+To compile the code in "release mode" add the `-s` flag:
 
 > bash compile.bash -s
 
