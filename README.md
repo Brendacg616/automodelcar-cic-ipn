@@ -9,11 +9,7 @@ Welcome to the CIC's AutoModel Car gitHub. This repository contents the code for
 
 The ROS distro used is Indigo along with Ubuntu 14.10 LTS. All the C++ and Pyhton Modules are included in different ROS packages. The launch files are also included.
 
-## Packages installation:
-
 **IMPORTANT: Before starting, make sure you have ROS and a catkin_ws workspace already configured on your PC! Otherwise, visit the [ROS Tutorials](http://wiki.ros.org/ROS/Tutorials/InstallingandConfiguringROSEnvironment).**
-
-TODO
 
 ## Cloning the repository
 In order to start working with the code, first clone the repository by typing:
@@ -21,7 +17,7 @@ In order to start working with the code, first clone the repository by typing:
 > git clone https://github.com/Conilo/automodelcar-cic-ipn.git
 
 ## Build the code:
-Then it's necesarry to compile the code (also after modifiying any file or node source). To do so, type:
+Then, it's necesarry to compile the code (also after modifiying any file or node source). To do so, type:
 
 > bash compile.bash
 
@@ -30,7 +26,7 @@ To compile the code in "release mode" add the `-s` flag:
 > bash compile.bash -s
 
 ## Run the code
-The cic package contains different launch files in order to execute specific tasks. The next subsecions explain all the launch files intended functions.
+The cic package contains different launch files in order to execute specific tasks. The next subsections explain all the launch files intended functions.
 
 ### Camera adjustment
 
