@@ -9,7 +9,7 @@ Welcome to the CIC's AutoModel Car gitHub. This repository contents the code for
 
 The ROS distro used is Indigo along with Ubuntu 14.10 LTS. All the C++ and Pyhton Modules are included in different ROS packages. The launch files are also included.
 
-**IMPORTANT: Before starting, make sure you have ROS and a catkin_ws workspace already configured on your PC! Otherwise, visit the [ROS Tutorials](http://wiki.ros.org/ROS/Tutorials/InstallingandConfiguringROSEnvironment).**
+**IMPORTANT: Before starting, make sure you have ROS and all it's deppendencies properly installed on your PC! Otherwise, visit the [ROS Tutorials](http://wiki.ros.org/ROS/Tutorials/InstallingandConfiguringROSEnvironment).**
 
 ## Cloning the repository
 In order to start working with the code, first clone the repository by typing:
