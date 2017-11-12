@@ -30,7 +30,7 @@ To compile the code in "release mode" add the `-s` flag:
 > bash compile.bash -s
 
 ## Run the code
-The cic package contains different launch files in order to execute specific tasks. The next subsecions explains deeply all the launch files intended fucntions.
+The cic package contains different launch files in order to execute specific tasks. The next subsecions explain all the launch files intended functions.
 
 ### Camera adjustment
 
@@ -38,7 +38,7 @@ To run the camera adjustment launch, type:
 
 > roslaunch cic camera_adjustment.launch
 
-A debug window will be displayed with a chessboard layout (see figure 1). To adjust the camera, you will need a printed chesboard pattern of 35x35 [cm]. Lay down the printed pattern in front of the camera and modify the parameters in the launch in order to match the chesboard pattern with the one displayed. Those parameters are:
+A debug window will be displayed with a chessboard layout (see figure 1). To adjust the camera, you will need a printed chesboard pattern of 35x35 [cm]. Lay down the printed pattern in front of the camera and modify the parameters in the launch in order to match the chessboard pattern with the one displayed. Those parameters are:
 
 - Pixel to cm ratio in the X-axis.
 - Pixel to cm ratio in the Y-axis.
