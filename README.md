@@ -16,11 +16,12 @@ The ROS distro used is Indigo along with Ubuntu 14.10 LTS. All the C++ and Pyhto
 TODO
 
 ## Cloning the repository
+In order to start working with the code, it's necesary to clone the repository; type:
 
 > git clone https://github.com/Conilo/automodelcar-cic-ipn.git
 
 ## Build the code:
-First, it's necesarry to compile the code (also after modifiying any file or node source). To compile the code, type:
+Then it's necesarry to compile the code (also after modifiying any file or node source). To compile the code, type:
 
 > bash compile.bash
 
