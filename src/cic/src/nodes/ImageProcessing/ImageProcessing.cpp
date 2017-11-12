@@ -1,14 +1,23 @@
 #include <ros/ros.h>
-#include <image_transport/image_transport.h>
+#include <opencv2/opencv.hpp>
 #include <cv_bridge/cv_bridge.h>
-#include <sensor_msgs/image_encodings.h>
 #include <opencv2/imgproc/imgproc.hpp>
-#include <opencv2/opencv.hpp>  
-#include <ros/console.h>
+#include <sensor_msgs/image_encodings.h>
+#include <image_transport/image_transport.h>
 
+ 
+// Wrap perspective points
+int a, b, c, d;
+int pixel_cm_ratio_x, pixel_cm_ratio_y;
+float scale_x, scale_y;
+
+// Debug global variables
+bool CALIBRATION = false;
+static const std::string CALIBRATION_WINDOW = "Calibration window";
 
 class ImageProssesing
 {
+
   ros::NodeHandle nh_;
   image_transport::ImageTransport it_;
   image_transport::Subscriber image_sub_;
@@ -19,10 +28,29 @@ public:
   ImageProssesing() 
     : it_(nh_)
   {
-    image_sub_ = it_.subscribe("/app/camera/rgb/image_raw", 1, 
-      &ImageProssesing::imageCb, this);
-    image_pub_ = it_.advertise("/img_prepros", 1); 
-    image_pub2_= it_.advertise("/calib_cam",1);
+    // Subscriber
+    image_sub_ = it_.subscribe(
+      "/app/camera/rgb/image_raw", 1, 
+      &ImageProssesing::imageCb, this, 
+      image_transport::TransportHints("compressed"));
+    
+    // Publisher
+    image_pub_ = it_.advertise("/image_processed", 1); 
+
+    if (CALIBRATION)
+    {
+      cv::namedWindow(CALIBRATION_WINDOW);
+    }
+
+  }
+
+  ~ImageProssesing()
+  {
+    if (CALIBRATION)
+    {
+      cv::destroyWindow(CALIBRATION_WINDOW);
+    }
+    
   }
 
 
@@ -32,76 +60,146 @@ void imageCb(const sensor_msgs::ImageConstPtr& msg)
     cv_bridge::CvImagePtr cv_ptr;
     
     try
-    	{
-     	  cv_ptr = cv_bridge::toCvCopy(
+    {
+     	cv_ptr = cv_bridge::toCvCopy(
         msg, sensor_msgs::image_encodings::BGR8);
-    	}
+    }
  
     catch (cv_bridge::Exception& e) 
-    	{
-      	ROS_ERROR("cv_bridge exception: %s", e.what());
-        return;
-    	}
+    {
+      ROS_ERROR("cv_bridge exception: %s", e.what());
+      return;
+    }
 
-      int e1 = cv::getTickCount();
-      cv::Mat image=cv_ptr->image,rs,gray_image,crop,Lambda,BV;
-      cv::Point2f imgPts[4], objPts[4] ;
-      cv::Rect ROI(0,90,640,350);
-      crop=image(ROI);
+    int e1 = cv::getTickCount();
 
-      cv::resize(crop, rs, cv::Size(), 0.4, 1.2,CV_INTER_LINEAR);
-      cv::cvtColor(rs, gray_image,CV_BGR2GRAY);
-       
-      int wh=gray_image.size().width;
-      int ht=gray_image.size().height;
-     
-      objPts[0].x=wh/2-45; 
-      objPts[0].y=0;
-      objPts[1].x=wh/2+50;
-      objPts[1].y=0;
-      objPts[2].x=0;
-      objPts[2].y=ht;
-      objPts[3].x=wh;
-      objPts[3].y=ht;
+    // OpenCV Mat files declaration
+    cv::Mat image = cv_ptr-> image,
+      croped_image,  
+      scaled_image,
+      gray_scale_image, 
+      lambda_image,
+      wrapped_image;
 
-      imgPts[0].x=0;
-      imgPts[0].y=0;
-      imgPts[1].x=wh;
-      imgPts[1].y=0; 
-      imgPts[2].x=wh/2-45;
-      imgPts[2].y=ht;
-      imgPts[3].x=wh/2+45;
-      imgPts[3].y=ht;  
+    // 1. Region Of Interest cropping
+    cv::Rect ROI(0,90,640,350);
+    croped_image = image(ROI);
 
-      Lambda=cv::getPerspectiveTransform(objPts,imgPts);
-      cv::warpPerspective(gray_image,BV,Lambda,gray_image.size());
+    // 2. Image Resizing 
+    cv::resize(croped_image, scaled_image, 
+      cv::Size(), scale_x, scale_y, CV_INTER_LINEAR);
+    
+    // 3. To gray scale color transform
+    cv::cvtColor(scaled_image, gray_scale_image, 
+      CV_BGR2GRAY);
       
-      cv_bridge::CvImage out_msg;
-      out_msg.header = msg->header;
-      out_msg.encoding = sensor_msgs::image_encodings::MONO8;
-      out_msg.image= BV; 
-      image_pub_.publish(out_msg.toImageMsg());
+    // Points used for homology
+    cv::Point2f image_points[4], object_points[4];
 
-      cv::Mat calib;
-      calib=BV;
-      cv::line(BV,cv::Point(128,0),cv::Point(128,420),255);
-      cv::line(BV,cv::Point(78,75),cv::Point(178,75),255);
-      cv::line(BV,cv::Point(78,200),cv::Point(178,200),255);
-      cv::line(BV,cv::Point(78,350),cv::Point(178,350),255);
-      out_msg.image=calib;
-       
-      image_pub2_.publish(out_msg.toImageMsg());
+    // Ger image size
+    int image_width = gray_scale_image.size().width;
+    int image_height = gray_scale_image.size().height;
+     
+    object_points[0].x = image_width/2 - a; 
+    object_points[0].y = 0;
+    object_points[1].x = image_width/2 + b;
+    object_points[1].y = 0;
+    object_points[2].x = 0;
+    object_points[2].y = image_height;
+    object_points[3].x = image_width;
+    object_points[3].y = image_height;
 
-      int e2=cv::getTickCount();
-      float t=(e2-e1)/cv::getTickFrequency();
-      ROS_INFO("frame time: %f-------------------------------block end",t);   
+    image_points[0].x = 0;
+    image_points[0].y = 0;
+    image_points[1].x = image_width;
+    image_points[1].y = 0; 
+    image_points[2].x = image_width/2 - c;
+    image_points[2].y = image_height;
+    image_points[3].x = image_width/2 + d;
+    image_points[3].y = image_height;  
+
+    lambda_image = 
+      cv::getPerspectiveTransform(object_points, image_points);
+ 
+    // Image wrapping
+    cv::warpPerspective(
+      gray_scale_image, wrapped_image,
+      lambda_image, gray_scale_image.size());
+    
+    // Image setup to publication
+    cv_bridge::CvImage out_msg;
+    out_msg.header = msg->header;
+    out_msg.encoding = sensor_msgs::image_encodings::MONO8;
+    out_msg.image= wrapped_image; 
+    image_pub_.publish(out_msg.toImageMsg());
+    
+    if (CALIBRATION)
+    {
+      
+      // Using a 35x35 cm chessboard
+      int half_width = image_width/2;
+      int half_height = image_height/2;
+
+      // Draw vertical lines
+      int i = 0;
+      while (i <= (35*pixel_cm_ratio_x)/2)
+      {
+        cv::line(wrapped_image, 
+          cv::Point(half_width + i, 0), 
+          cv::Point(half_width + i, image_height), 
+          255);
+        cv::line(wrapped_image, 
+          cv::Point(half_width - i, 0), 
+          cv::Point(half_width - i, image_height), 
+          255);
+        i = i + (5*pixel_cm_ratio_x);
+      }
+      
+      i = 0;
+      while (i <= (35*pixel_cm_ratio_y)/2)
+      {
+        cv::line(wrapped_image, 
+          cv::Point(0,half_height + i), 
+          cv::Point(image_width,half_height+i), 
+          255);
+        cv::line(wrapped_image, 
+          cv::Point(0,half_height - i), 
+          cv::Point(image_width,half_height - i), 
+          255);
+        i = i + (5*pixel_cm_ratio_y);
+      }
+      
+      cv::imshow(CALIBRATION_WINDOW, wrapped_image);
+      cv::waitKey(3);
+    }
+
+    // Node execution time calculation and publication
+    int e2 = cv::getTickCount();
+    float t = (e2-e1) / cv::getTickFrequency();
+    ROS_INFO("frame time: %f----------------------block end",t);
+     
   }
 };
 
 int main(int argc, char** argv) 
 {
+
+  // Init ROS node
   ros::init(argc, argv, "ImageProcessing");
   ROS_INFO(" ImageProcessing node running ...");
+
+  // Get parameters from launch
+  ros::param::get("~calibration_mode", CALIBRATION);
+  ros::param::get("~pixel_cm_ratio_x", pixel_cm_ratio_x);
+  ros::param::get("~pixel_cm_ratio_y", pixel_cm_ratio_y);
+  ros::param::get("~scale_x", scale_x);
+  ros::param::get("~scale_y", scale_y);
+  ros::param::get("~p1", a);
+  ros::param::get("~p2", b);
+  ros::param::get("~p3", c);
+  ros::param::get("~p4", d);
+
+  // Image callback
   ImageProssesing ip;
   ros::spin();
   return 0;
