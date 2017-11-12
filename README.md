@@ -20,7 +20,7 @@ TODO
 > git clone https://github.com/Conilo/automodelcar-cic-ipn.git
 
 ## Build the code:
-First, it's necesarry to compile the code using (also after modifiying any file or node source). To compile the code:
+First, it's necesarry to compile the code (also after modifiying any file or node source). To compile the code, type:
 
 > bash compile.bash
 
