@@ -16,7 +16,7 @@ The ROS distro used is Indigo along with Ubuntu 14.10 LTS. All the C++ and Pyhto
 TODO
 
 ## Cloning the repository
-In order to start working with the code, it's necesary to clone the repository; type:
+In order to start working with the code, first clone the repository by typing:
 
 > git clone https://github.com/Conilo/automodelcar-cic-ipn.git
 
@@ -38,7 +38,7 @@ To run the camera adjustment launch, type:
 
 > roslaunch cic camera_adjustment.launch
 
-A debug window will be displayed with a chesboard layout (see figure 1) and using a chesboard pattern of 35x35 [cm], it's possible to modify the parameters in the launch in order to match the chesboard pattern with the one displayed:
+A debug window will be displayed with a chessboard layout (see figure 1). To adjust the camera, you will need a printed chesboard pattern of 35x35 [cm]. Lay down the printed pattern in front of the camera and modify the parameters in the launch in order to match the chesboard pattern with the one displayed. Those parameters are:
 
 - Pixel to cm ratio in the X-axis.
 - Pixel to cm ratio in the Y-axis.
