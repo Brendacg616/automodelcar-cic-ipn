@@ -1,4 +1,4 @@
-# Automodel-CIC-IPN
+# AutoModelCar CIC IPN
 Welcome to the CIC's AutoModel Car gitHub. This repository contents the code for the next modules:
 
 - Image processing and camera adjustment (C++ and Python).
