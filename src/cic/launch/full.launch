@@ -1,0 +1,22 @@
+<!-- Run all nodes required for autonomous mode  -->
+<launch>
+
+    <node name="ImageProcessing" 
+          pkg="cic" 
+          type="ImageProcessing">
+    <!-- Set Parameters for Image Processing node -->
+    <param name="calibration_mode" value="false" type="bool" />
+    <param name="pixel_cm_ratio_x" value="4" type="int" />
+    <param name="pixel_cm_ratio_y" value="6" type="int" />
+    <param name="scale_x" value="0.4" type="double" />
+    <param name="scale_y" value="1.2" type="double" />
+    <param name="p1" value="45" type="int" />
+    <param name="p2" value="50" type="int" />
+    <param name="p3" value="45" type="int" />
+    <param name="p4" value="50" type="int" />
+    </node>
+
+    
+
+
+</launch>

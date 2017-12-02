@@ -16,6 +16,9 @@ In order to start working with the code, first clone the repository by typing:
 
 > git clone https://github.com/Conilo/automodelcar-cic-ipn.git
 
+## Establish communication with the car
+TODO
+
 ## Build the code:
 Then, it's necesarry to compile the code (also after modifiying any file or node source). To do so, type:
 
@@ -26,7 +29,12 @@ To compile the code in "release mode" add the `-s` flag:
 > bash compile.bash -s
 
 ## Run the code
+
+### On the PC
 The cic package contains different launch files in order to execute specific tasks. The next subsections explain all the launch files intended functions.
+
+### On the AutoModelCar
+TODO
 
 ### Camera adjustment
 

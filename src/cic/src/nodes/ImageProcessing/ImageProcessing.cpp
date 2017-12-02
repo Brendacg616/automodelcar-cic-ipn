@@ -176,7 +176,7 @@ void imageCb(const sensor_msgs::ImageConstPtr& msg)
     // Node execution time calculation and publication
     int e2 = cv::getTickCount();
     float t = (e2-e1) / cv::getTickFrequency();
-    ROS_INFO("frame time: %f",t);
+    ROS_INFO("  Elapsed time: %f ------- ",t);
      
   }
 };
