@@ -30,19 +30,15 @@ To compile the code in "release mode" add the `-s` flag:
 
 ## Run the code
 
-### On the PC
-The cic package contains different launch files in order to execute specific tasks. The next subsections explain all the launch files intended functions.
+There are different available run modes depending on the function needed. The next subsections explain each mode functionalities and how to run them.
 
-### On the AutoModelCar
-TODO
+### Camera adjustment mode
 
-### Camera adjustment
+To run the camera adjustment mode, type:
 
-To run the camera adjustment launch, type:
+> bash start.bash -cm
 
-> roslaunch cic camera_adjustment.launch
-
-A debug window will be displayed with a chessboard layout (see figure 1). To adjust the camera, you will need a printed chesboard pattern of 35x35 [cm]. Lay down the printed pattern in front of the camera and modify the parameters in the launch in order to match the chessboard pattern with the one displayed. Those parameters are:
+A debug window will be displayed with a chessboard layout (see figure 1). To adjust the camera, you will need a printed chesboard pattern of 35x35 [cm]. Lay down the printed pattern in front of the camera and modify the parameters in the camera calibration launch file in order to match the chessboard pattern with the one displayed. Those parameters are:
 
 - Pixel to cm ratio in the X-axis.
 - Pixel to cm ratio in the Y-axis.
@@ -55,6 +51,19 @@ Figure 1: Chessboard pattern displayed on camera adjustmen mode.
 
 ### Autonomous mode
 TODO
+
+## Run the code with bags
+To run the code with bags on the PC, it's needed to first run a mode, typing:
+
+> bash start.bash -mode
+
+where "mode" is to be replaced with the desired mode. Then it's necesary to play the desired bag typing:
+
+> bash play_bag.bash desired_bag
+
+the "desired_bag" is the file name without extention.
+
+**IMPORTANT: before playing a ros bag file, make sure that there exists a bags/ folder inside this working space. Otherwise, you should modify the play_bag.bash file to adjust the path to your bags folder.**
 
 ## Contact:
 If you need more info about the code, please contact:
