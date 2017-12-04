@@ -53,17 +53,21 @@ Figure 1: Chessboard pattern displayed on camera adjustmen mode.
 TODO
 
 ## Run the code with bags
-To run the code with bags on the PC, it's needed to first run a mode, typing:
+To run the code with bags on the PC, having a ROS master running is needed,  you can do it by typing:
+
+> roscore
+
+or 
 
 > bash start.bash -mode
 
-where "mode" is to be replaced with the desired mode. Then it's necesary to play the desired bag typing:
+where "mode" is to be replaced with the desired mode. Then, to play the desired bag, type:
 
 > bash play_bag.bash desired_bag
 
-the "desired_bag" is the file name without extention.
+where the "desired_bag" is the file name without extention.
 
-**IMPORTANT: before playing a ros bag file, make sure that there exists a bags/ folder inside this working space. Otherwise, you should modify the play_bag.bash file to adjust the path to your bags folder.**
+**IMPORTANT: before playing a ROS bag file, make sure that a bags/ folder with your bag inside it exists in your working space. Otherwise, you may need to modify the play_bag.bash file to adjust the path to your bags container folder.**
 
 ## Contact:
 If you need more info about the code, please contact:

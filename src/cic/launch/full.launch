@@ -16,7 +16,12 @@
     <param name="p4" value="50" type="int" />
     </node>
 
-    
-
+    <node name="LaneDetection" 
+          pkg="cic" 
+          type="LaneDetection">
+    <!-- Set Parameters for Image Processing node -->
+    <param name="debug_mode" value="true" type="bool" />
+    <param name="direct_mode" value="false" type="bool" />
+    </node>
 
 </launch>

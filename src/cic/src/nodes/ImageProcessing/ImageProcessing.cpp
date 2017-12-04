@@ -13,7 +13,7 @@ float scale_x, scale_y;
 
 // Debug global variables
 bool CALIBRATION = false;
-static const std::string CALIBRATION_WINDOW = "Calibration window";
+static const std::string CALIBRATION_WINDOW = "Camera Calibration";
 
 class ImageProssesing
 {
