@@ -26,6 +26,11 @@ add_message_files(
    Master.msg
 )
 
+generate_messages(
+   DEPENDENCIES
+   std_msgs
+)
+
 ################################################
 ## Declare ROS dynamic reconfigure parameters ##
 ################################################
@@ -60,6 +65,7 @@ catkin_package(
 #  LIBRARIES cic
 #  CATKIN_DEPENDS catch_ros cv_bridge image_transport message_filters message_generation roscpp rospy sensor_msgs std_msgs
 #  DEPENDS system_lib
+  CATKIN_DEPENDS message_runtime
 )
 
 ###########

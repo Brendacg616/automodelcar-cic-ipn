@@ -9,6 +9,7 @@
 #include <vector>
 #include <iostream>
 #include "std_msgs/Int16.h"
+#include "cic/Lane.h"
 #include "LocMax_pw.cpp"
 
 cv::Vec4f line;
@@ -41,7 +42,7 @@ class LaneDetection
 	image_transport::ImageTransport it_;
 	image_transport::Subscriber image_sub_;
 	image_transport::Publisher image_pub_; 
-	ros::Publisher pubDir,pubVel;
+	ros::Publisher pubMsg, pubDir, pubVel;
 
 public:
 
@@ -61,10 +62,8 @@ public:
 		}
 		else
 		{
-			pubDir= nh_.advertise<std_msgs::Int16>(
-				"/lane_follower_FP/steering",1);
-			pubVel= nh_.advertise<std_msgs::Int16>(
-				"/lane_follower_FP/speed",1); 
+			pubMsg = nh_.advertise<cic::Lane>(
+				"/lane_detection",1);
 		}
 
    		if (DEBUG)
@@ -325,8 +324,19 @@ public:
     	angDir.data = MAX_STEER_LEFT;
 	}
 
-	pubDir.publish(angDir);
-	pubVel.publish(vel);
+	if (DIRECT_CONTROL)
+	{
+		pubDir.publish(angDir);
+		pubVel.publish(vel);
+	}
+	else
+	{
+		cic::Lane LaneMsg;
+		LaneMsg.header.stamp = ros::Time::now();
+		LaneMsg.steering_value = angDir.data;
+		LaneMsg.speed_value = vel.data;
+		pubMsg.publish(LaneMsg);
+	}
 
 	if(DEBUG)
 	{
