@@ -1,3 +1,3 @@
 Header header
-float32 steering_value
-float32 velocity_value
+int8 steering_value
+int16 speed_value

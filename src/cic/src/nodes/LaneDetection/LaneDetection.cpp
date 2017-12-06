@@ -12,29 +12,33 @@
 #include "cic/Lane.h"
 #include "LocMax_pw.cpp"
 
+// Global Parameters
+static const std::string LANE_DETECTION_WINDOW = "Lane Detection";
+bool DEBUG;
+bool DIRECT_CONTROL = false;
+float IMAGE_PERCENTAGE = 0.8;
+int MAX_STEERING_ANGLE_LEFT = 20;
+int MAX_STEERING_ANGLE_RIGHT = 160;
+int MAX_VEL = -500;
+int LANE_WIDTH = 110;
+int ROW_STEP = 4;
+int TOLERANCE = 3;
+bool DRIVE_RIGHT_LANE = true;
+
+// Global Constants
+int RIGHT_LANE_ORIGIN = 128;
+int LEFT_LANE_ORIGIN = RIGHT_LANE_ORIGIN - LANE_WIDTH;
+
+//Global variables
 cv::Vec4f line;
-std_msgs::Int16 angDir,vel;
-int antCent=128;
-int x,y,cont; 
-int MAX_DIST=50;
-int MAX_SPEED_BACK=300;
-int MAX_SPEED_FOR=-1000;
-int MAX_STEER_LEFT=20;
-int MAX_STEER_RIGHT=160;
-int LANE_WIDTH=4;
-int TOL=3;
+std_msgs::Int16 steering_PWM,vel;
+int last_center_position = RIGHT_LANE_ORIGIN;
+int x, y, cont; 
 int err = 0;
 int tht = 90;
 int errAnt = 0;
-int MAX_VEL = -900;
-
-
-
-// Global variables
-bool DEBUG = false;
-static const std::string LANE_DETECTION_WINDOW = "Lane Detection";
-
-bool DIRECT_CONTROL = false;
+int e1, e2;
+float elapsed_time;
 
 class LaneDetection
 {
@@ -46,140 +50,142 @@ class LaneDetection
 
 public:
 
-	LaneDetection() 
-    : it_(nh_)  
-  	{
-		image_sub_ = it_.subscribe(
-			"/image_processed", 1,
-			&LaneDetection::imageCb, this);
+LaneDetection() 
+	: it_(nh_)  
+{
+	image_sub_ = it_.subscribe(
+		"/image_processed", 1,
+		&LaneDetection::imageCb, this);
 
-		if (DIRECT_CONTROL)
-		{
-			pubDir= nh_.advertise<std_msgs::Int16>(
-				"/manual_control/steering",1); 
-   			pubVel= nh_.advertise<std_msgs::Int16>(
-				"/manual_control/speed",1);
-		}
-		else
-		{
-			pubMsg = nh_.advertise<cic::Lane>(
-				"/lane_detection",1);
-		}
-
-   		if (DEBUG)
-   		{
-			cv::namedWindow(LANE_DETECTION_WINDOW);
-   		}
-  	}
-
-	~LaneDetection()
-  	{
-    	if(DEBUG)
-    	{
-      		cv::destroyWindow(LANE_DETECTION_WINDOW);
-    	}
-  	}
-
-	int dirControl(int err,int tht, int errAnt) 
+	if (DIRECT_CONTROL)
 	{
-    	int pe;
-    	int pp;
-    	int sal;    
-	  	if (tht>110 || tht<90)
-    	{
-			pe = 1.25;
-			pp = 1;
-			MAX_VEL = -1200;
-    	}
-		else	
-		{
-            pe = 0.3;
-			pp = 1;
-			MAX_VEL= -1200;
-    	}
-		  
-		sal = err*pe + tht*pp + (err-errAnt)*1;
-		
-		return sal;
+		pubDir= nh_.advertise<std_msgs::Int16>(
+			"/manual_control/steering",1); 
+   		pubVel= nh_.advertise<std_msgs::Int16>(
+			"/manual_control/speed",1);
+	}
+	else
+	{
+		pubMsg = nh_.advertise<cic::Lane>(
+			"/lane_detection",1);
 	}
 
-	void imageCb(const sensor_msgs::ImageConstPtr& msg)
-  	{
-    	cv_bridge::CvImagePtr cv_ptr;
-    try
-    	{
-     		cv_ptr = cv_bridge::toCvCopy(
-				 msg,sensor_msgs::image_encodings::MONO8);
-    	}
-    catch (cv_bridge::Exception& e) 
-    	{
-      		ROS_ERROR("cv_bridge exception: %s", e.what());
-    		return;
-      	}
-	
-	int e1=cv::getTickCount();
+   	if (DEBUG)
+   	{
+		cv::namedWindow(LANE_DETECTION_WINDOW);
+   	}
+}
 
-	//Color transform
-    cv::Mat image=cv_ptr->image;
-    int hght=image.size().height;
-	int wdth=image.size().width;
-	
-	for (int i=hght*0.5; i<hght; i++)
+~LaneDetection()
+{
+    if(DEBUG)
+    {
+      	cv::destroyWindow(LANE_DETECTION_WINDOW);
+    }
+}
+
+int CalculateServoPWM(int err,int tht, int errAnt) 
+{
+    int pe;
+    int pp;
+	int output;  
+		  
+	if (tht>110 || tht<90)
+    {
+		pe = 1.25;
+		pp = 1;
+    }
+	else	
 	{
-		for (int j=0; j<wdth; j++)
+        pe = 0.3;
+		pp = 1;
+    }
+		  
+	output = err*pe + tht*pp + (err-errAnt)*1;
+	return output;
+}
+
+void imageCb(const sensor_msgs::ImageConstPtr& msg)
+{
+    cv_bridge::CvImagePtr cv_ptr;
+    try
+    {
+     	cv_ptr = cv_bridge::toCvCopy(
+		msg,sensor_msgs::image_encodings::MONO8);
+    }
+   	catch (cv_bridge::Exception& e) 
+    {
+      	ROS_ERROR("cv_bridge exception: %s", e.what());
+    	return;
+    }
+	
+	e1 = cv::getTickCount();
+
+	// --- Color transform (fill black corners) --- //
+    cv::Mat image = cv_ptr->image;
+    int hght = image.size().height;
+	int wdth = image.size().width;
+	
+	for (int i = hght * IMAGE_PERCENTAGE; i<hght; i++)
+	{
+		for (int j = 0; j < wdth; j++)
 		{
-			if (image.at<uchar>(i,j)<50){
-				image.at<uchar>(i,j)= rand()%6+87;
+			if (image.at<uchar>(i,j) < 50)
+			{
+				image.at<uchar>(i,j) = rand()%6 + 87;
 			}
 		}	
 	}
 
-	// Image filtering
+	// --- Image filtering --- //
 	medianBlur(image, image, 5);
 
-	//Lane center detection
-    int jI=antCent;
-    int jD=antCent;
-    int point=antCent;
-    int i=hght-9;
+	// --- Lane detection algorithm --- //
+	// Initial conditions
+    int jI = last_center_position;
+    int jD = last_center_position;
+    int point=last_center_position;
+    int current_row = hght-9;
     int desv;  
        
     std::vector<cv::Point> cents;
     std::vector<cv::Point> iniIzq;
     std::vector<cv::Point> iniDer;
-    std::vector<int> pc,v,loc;
+    std::vector<int> v,loc;
    
-    /*cents.push_back(cv::Point2f(antCent,i));
-	iniIzq.push_back(cv::Point2f(antCent-MAX_DIST,i));
-    iniDer.push_back(cv::Point2f(antCent+MAX_DIST,i)); */
-	cents.push_back(cv::Point2f(antCent,hght-3));	
-    iniIzq.push_back(cv::Point2f(antCent-MAX_DIST,hght-3));
-    iniDer.push_back(cv::Point2f(antCent+MAX_DIST,hght-3));  
+    /*cents.push_back(cv::Point2f(last_center_position,i));
+	iniIzq.push_back(cv::Point2f(last_center_position-(LANE_WIDTH/2),i));
+    iniDer.push_back(cv::Point2f(last_center_position+(LANE_WIDTH/2),i)); */
+	cents.push_back(cv::Point2f(last_center_position,hght-3));	
+    iniIzq.push_back(cv::Point2f(last_center_position-(LANE_WIDTH/2),hght-3));
+    iniDer.push_back(cv::Point2f(last_center_position+(LANE_WIDTH/2),hght-3));
 	  
 	if(DEBUG)
 	{
-		cv::circle(image,cv::Point(cents.back()),3,155,-1);
 		cv::circle(image,cv::Point(iniIzq.back()),3,255,-1);
 		cv::circle(image,cv::Point(iniDer.back()),3,55,-1);
 	}
      
        
-	while (i>hght*0.8)
+	while (current_row > (hght * IMAGE_PERCENTAGE))
   	{ 
  		//Lado Derecho
    		bool centDerFlag = false;
-		v=(std::vector<int>) image.row(i).colRange(jD,wdth);
+		v=(std::vector<int>) image.row(current_row).colRange(jD,wdth);
 		loc=LocMax_pw(v,25,15);
 		if (!(loc.empty()))
 		{
-			x=std::abs(iniDer.back().x-(loc[0]+jD));
-			y=std::abs(iniDer.back().y-i);
+			x = std::abs(iniDer.back().x-(loc[0]+jD));
+			y = std::abs(iniDer.back().y - current_row);
 			
-			if (x<(20*TOL) && y<(10*TOL))
+			if (x<(20*TOLERANCE) && y<(10*TOLERANCE))
                 { 
-                	iniDer.push_back(cv::Point2f(loc[0]+jD,i));
-                    cv::circle(image,cv::Point(iniDer.back()),1,250,-1);
-                    point= iniDer.back().x-TOL;
+                	iniDer.push_back(
+						cv::Point2f(loc[0]+jD, current_row));
+                    cv::circle(
+						image,
+						cv::Point(iniDer.back()),1,250,-1);
+                    point= iniDer.back().x-TOLERANCE;
                     centDerFlag = true;
                 }
 			else 
@@ -193,17 +199,19 @@ public:
    
 		//Lado izquierdo
    		bool centIzqFlag = false;
-		v=(std::vector<int>) image.row(i).colRange(0,jI);
+		v=(std::vector<int>) image.row(current_row).colRange(0,jI);
 		loc=LocMax_pw(v,25,15);
 		if (!(loc.empty()))
 		{
 			x=std::abs(iniIzq.back().x-(loc.back()));
-        	y=std::abs(iniIzq.back().y-i);
-			if (x<(20*TOL) && y<(10*TOL))
+        	y=std::abs(iniIzq.back().y - current_row);
+			if (x<(20*TOLERANCE) && y<(10*TOLERANCE))
         	{ 
-          		iniIzq.push_back(cv::Point2f(loc.back(),i));
-            	cv::circle(image,cv::Point(iniIzq.back()),1,50,-1);
-            	point= iniIzq.back().x+(3*TOL);
+          		iniIzq.push_back(
+					  cv::Point2f(loc.back(), current_row));
+            	cv::circle(
+					image,cv::Point(iniIzq.back()),1,50,-1);
+            	point= iniIzq.back().x+(3*TOLERANCE);
             	centIzqFlag = true;
         	}
 			else 
@@ -218,37 +226,38 @@ public:
 
 		if (centDerFlag == true)
 		{
-		//	if ((iniDer.back().x-MAX_DIST>0)
-			int cent= iniDer.back().x-MAX_DIST>50? iniDer.back().x-MAX_DIST:MAX_DIST;
-	   		cents.push_back(cv::Point2f(cent,i));
-			antCent= cents[1].x;
+		//	if ((iniDer.back().x-(LANE_WIDTH/2)>0)
+			int cent= iniDer.back().x - (LANE_WIDTH/2)>50? iniDer.back().x - (LANE_WIDTH/2):(LANE_WIDTH/2);
+	   		cents.push_back(cv::Point2f(cent, current_row));
+			last_center_position= cents[1].x;
 		}
 		else if (centIzqFlag == true)
 		{
-		//	int cent= iniIzq.back().x+MAX_DIST<wdth? iniIzq.back().x+MAX_DIST:wdth;
-			int cent= iniIzq.back().x+MAX_DIST<wdth-MAX_DIST? iniIzq.back().x+MAX_DIST:wdth-MAX_DIST;
-	   		cents.push_back(cv::Point2f(cent,i));
-	   		antCent= cents[1].x;    
+		//	int cent= iniIzq.back().x+(LANE_WIDTH/2)<wdth? iniIzq.back().x+(LANE_WIDTH/2):wdth;
+			int cent= iniIzq.back().x+(LANE_WIDTH/2)<wdth-(LANE_WIDTH/2)? iniIzq.back().x+(LANE_WIDTH/2):wdth-(LANE_WIDTH/2);
+	   		cents.push_back(cv::Point2f(cent, current_row));
+	   		last_center_position = cents[1].x;    
 		}
-		cv::circle(image,cv::Point(cents.back()),1,155,-1);		
-		i=i-4;	
+		cv::circle(image,cv::Point(cents.back()),1,155,-1);	
+
+		current_row -= ROW_STEP;	
 	}
 
-	//Steering calculation
+	// --- Steering calculation --- //
 	bool rf=false;
 	bool DerFlag=false;
 	bool IzqFlag=false;
-	if (iniDer.size()>8)
+	if (iniDer.size() > 8)
 	{
 	     cv::fitLine(iniDer,line,CV_DIST_L2,0,0.01,0.01);
-	     desv =-MAX_DIST;
+	     desv =-(LANE_WIDTH/2);
 	     rf=true;    
 	     DerFlag=true;    
 	}		
-	else if (iniIzq.size()>5)
+	else if (iniIzq.size() > 5)
 	{
 	     cv::fitLine(iniIzq,line,CV_DIST_L2,0,0.01,0.01);;
-	     desv = MAX_DIST;
+	     desv = (LANE_WIDTH/2);
 	     rf=true; 
 	     IzqFlag=true;
 	}		
@@ -289,66 +298,68 @@ public:
 	}
 	
 	errAnt = err;
-	int calcDir = dirControl(err, tht, errAnt); 
-	ROS_INFO(" Calcdir= %i ",calcDir); 
-	if (calcDir>angDir.data+3)
+	int servo_PWM = CalculateServoPWM(err, tht, errAnt); 
+	 
+	if (servo_PWM > steering_PWM.data + 3)
 	{
-		angDir.data += 3;
+		steering_PWM.data += 3;
 	}
-	else if (calcDir<angDir.data-3)
+	else if (servo_PWM < steering_PWM.data - 3)
 	{
-		angDir.data -= 3;
+		steering_PWM.data -= 3;
 	}
 
-	//Speed Calculation and publication
+	// --- Speed Calculation --- //
 	//int maxVel = int(MAX_VEL*exp(-1*(0.002)*std::abs(err*10)));
 	float nouvtht=(tht/90)-1;
 	if (nouvtht<0)
 	{
   		nouvtht=-nouvtht;
 	}
+
 	int maxVel=int(MAX_VEL*exp(-0.5*nouvtht));
-	ROS_INFO(" MaxVel= %i ",maxVel); 
+	
 	if (vel.data > (maxVel+9))
    	{vel.data -= 2;}
 	else if (vel.data<=maxVel)
    	{vel.data += 7;}
 	
-	//Servomotor and saturation////////////////////////////////////////////////
-	if (angDir.data>MAX_STEER_RIGHT)
+	//Servomotor and saturation
+	if (steering_PWM.data > MAX_STEERING_ANGLE_RIGHT)
 	{
-    	angDir.data = MAX_STEER_RIGHT;
+    	steering_PWM.data = MAX_STEERING_ANGLE_RIGHT;
 	}
-	else if (angDir.data<MAX_STEER_LEFT)
+	else if (steering_PWM.data < MAX_STEERING_ANGLE_LEFT)
 	{
-    	angDir.data = MAX_STEER_LEFT;
+    	steering_PWM.data = MAX_STEERING_ANGLE_LEFT;
 	}
 
 	if (DIRECT_CONTROL)
 	{
-		pubDir.publish(angDir);
+		pubDir.publish(steering_PWM);
 		pubVel.publish(vel);
 	}
 	else
 	{
 		cic::Lane LaneMsg;
 		LaneMsg.header.stamp = ros::Time::now();
-		LaneMsg.steering_value = angDir.data;
+		LaneMsg.steering_value = steering_PWM.data;
 		LaneMsg.speed_value = vel.data;
 		pubMsg.publish(LaneMsg);
 	}
 
+	e2 = cv::getTickCount();
+	elapsed_time = (e2 - e1)/cv::getTickFrequency();
+
 	if(DEBUG)
 	{
+		ROS_INFO(" servo_PWM= %i ",servo_PWM);
+		ROS_INFO("frame time: %f ----- block end", elapsed_time);
 		cv::imshow(LANE_DETECTION_WINDOW, image);
-		cv::waitKey(3);
-	}
+		cv::waitKey(3); 
+	}     
 
-	int e2=cv::getTickCount();
-	float t=(e2-e1)/cv::getTickFrequency();
-	ROS_INFO("frame time: %f-------------------------------block end",t);        
-
-	}
+}
 };
 
 int main(int argc, char** argv) 
@@ -359,6 +370,18 @@ int main(int argc, char** argv)
 	// Get parameters from launch
 	ros::param::get("~debug_mode", DEBUG);
 	ros::param::get("~direct_mode", DIRECT_CONTROL);
+	ros::param::get("~max_vel", MAX_VEL);
+	ros::param::get("~lane_width", LANE_WIDTH);
+	ros::param::get("~drive_right_lane", DRIVE_RIGHT_LANE);
+	ros::param::get("~image_percentage", IMAGE_PERCENTAGE);
+	ros::param::get("~row_step", ROW_STEP);
+	ros::param::get("~max_steering_angle_right", 
+		MAX_STEERING_ANGLE_RIGHT);
+	ros::param::get("~max_steering_angle_left", 
+		MAX_STEERING_ANGLE_LEFT);
+
+	last_center_position = DRIVE_RIGHT_LANE == true? 
+		RIGHT_LANE_ORIGIN : LEFT_LANE_ORIGIN;
 
 	LaneDetection ld;
 	ros::spin();
