@@ -73,7 +73,6 @@ int ServoSaturation(int servo_PWM)
 {
     int PWM_value;
 
-    
     if (servo_PWM > steering_PWM.data + 3)
 	{
 		servo_PWM += 3;
@@ -146,3 +145,104 @@ int ServoSaturation(int servo_PWM)
         index = lane_centers.back().x;
     } 
   }
+
+/*
+ * Funtion that Extracts the left line, 
+ * right line and center line points using 
+ * local maxima detection
+ */
+void LineDetection(
+    cv::Mat image,
+    int image_height,
+	int image_width,
+    std::vector<cv::Point>& lane_centers,
+    std::vector<cv::Point>& right_line_points,
+    std::vector<cv::Point>& left_line_points)
+{
+    int left_index;
+	int right_index;
+	int current_row;
+	int lane_center;
+	float dist_to_found_center; 
+	bool right_line_point_found;
+	bool left_line_point_found; 
+    std::vector<int> image_row_vector, local_maxima_found;
+
+    // Set initial conditions
+    left_index = last_center_position;
+    right_index = last_center_position;
+	current_row = image_height - ROW_STEP; 
+	dist_to_found_center = -1.0;
+    lane_centers.clear();
+    left_line_points.clear();
+	right_line_points.clear();
+	
+	// Set initial line points
+    lane_centers.push_back(
+		cv::Point2f(last_center_position, image_height - 1));	
+    left_line_points.push_back(cv::Point2f(
+		last_center_position - (LANE_WIDTH/2), image_height - 1));
+    right_line_points.push_back(cv::Point2f(
+		last_center_position + (LANE_WIDTH/2), image_height - 1));
+	
+	// Image scanning by rows
+	while (current_row > (image_height * IMAGE_PERCENTAGE))
+  	{
+
+		/* Right side scanning */
+		right_line_point_found = false;
+		// Prepare image row vector to scan
+		image_row_vector = 
+			(std::vector<int>) image.row(current_row).colRange(right_index, image_width);
+		// Search for local maxima
+		local_maxima_found = 
+			LocMax_pw(image_row_vector, MAX_PEAK_HEIGHT, MAX_PEAK_WIDTH);
+		// Local maxima validation (if found)
+		LocalMaximaValidation(
+			RIGHT_LINE,
+			local_maxima_found,
+			lane_centers,
+			current_row,
+			right_line_points,
+			right_index,
+			right_line_point_found);
+
+		/* Left side scanning */ 
+		left_line_point_found = false;
+		// Prepare image row vector to scan
+		image_row_vector = 
+			(std::vector<int>) image.row(current_row).colRange(0, left_index);
+		// Search for local maxima
+		local_maxima_found = 
+			LocMax_pw(image_row_vector, MAX_PEAK_HEIGHT, MAX_PEAK_WIDTH);
+		// Local maxima validation (if found)
+		LocalMaximaValidation(
+			LEFT_LINE,
+			local_maxima_found,
+			lane_centers,
+			current_row,
+			left_line_points,
+			left_index,
+			left_line_point_found);
+
+		// Center points calculation
+		if (right_line_point_found == true)
+		{			
+			int cent = right_line_points.back().x - (ALLOWED_DEVIATION)>50? 
+				right_line_points.back().x - ALLOWED_DEVIATION:
+				ALLOWED_DEVIATION;
+			lane_centers.push_back(cv::Point2f(cent, current_row));
+		 	last_center_position = lane_centers[1].x;
+	 	}
+		else if (left_line_point_found == true)
+		{
+			int cent = left_line_points.back().x + ALLOWED_DEVIATION<image_width-ALLOWED_DEVIATION? 
+				left_line_points.back().x + ALLOWED_DEVIATION:
+				image_width-ALLOWED_DEVIATION;
+			lane_centers.push_back(cv::Point2f(cent, current_row));
+			last_center_position = lane_centers[1].x;    
+	 	}
+
+		current_row -= ROW_STEP;	
+	}
+}

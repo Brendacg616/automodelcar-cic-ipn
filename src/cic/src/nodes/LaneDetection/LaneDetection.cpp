@@ -76,20 +76,11 @@ void imageCb(const sensor_msgs::ImageConstPtr& msg)
 	cv::Mat image;
 	int image_height;
 	int image_width;
-	int left_index;
-	int right_index;
-	int current_row;
-	int lane_center;
-	float dist_to_found_center; 
-	bool right_line_point_found;
-	bool left_line_point_found; 
 	int servo_PWM;
 	cv::Vec4f line;
-	cv::Point center_point_found;
 	std::vector<cv::Point> lane_centers;
 	std::vector<cv::Point> left_line_points;
 	std::vector<cv::Point> right_line_points;
-	std::vector<int> image_row_vector, local_maxima_found;
 
 	// Image allocator and shape extraction
 	image = cv_ptr -> image;
@@ -108,90 +99,44 @@ void imageCb(const sensor_msgs::ImageConstPtr& msg)
 		}	
 	}
 
-	/* ---  Image filtering --- */
+	// Image filtering 
 	medianBlur(image, image, FILTER_KERNEL_SIZE);
 
-	/* --- Lane detection algorithm --- */
-
-	// Set initial conditions
-    left_index = last_center_position;
-    right_index = last_center_position;
-	current_row = image_height - 9; 
-	dist_to_found_center = -1.0;
-    lane_centers.clear();
-    left_line_points.clear();
-	right_line_points.clear();
+	// Line detection algorithm
+	LineDetection(
+		image,
+		image_height,
+		image_width,
+		lane_centers,
+		right_line_points,
+		left_line_points);
 	
-	// Set initial line points
-    lane_centers.push_back(
-		cv::Point2f(last_center_position, image_height - 1));	
-    left_line_points.push_back(cv::Point2f(
-		last_center_position - (LANE_WIDTH/2), image_height - 1));
-    right_line_points.push_back(cv::Point2f(
-		last_center_position + (LANE_WIDTH/2), image_height - 1));
+	if(DEBUG)
+	{
+		// Draw lines begin
+		cv::circle(image,cv::Point(left_line_points.front()), 3, 55, -1);
+		cv::circle(image,cv::Point(right_line_points.front()), 3, 255, -1);
 	
-	// Image scanning by rows
-	while (current_row > (image_height * IMAGE_PERCENTAGE))
-  	{
+		// Draw lane centers
+		for (std::vector<cv::Point>::iterator point = 
+			lane_centers.begin() ; 
+			point != lane_centers.end(); ++point)
+			cv::circle(image, *point, 1, 155, -1);
 
-		/* Right side scanning */
-		right_line_point_found = false;
-		// Prepare image row vector to scan
-		image_row_vector = 
-			(std::vector<int>) image.row(current_row).colRange(right_index, image_width);
-		// Search for local maxima
-		local_maxima_found = 
-			LocMax_pw(image_row_vector, MAX_PEAK_HEIGHT, MAX_PEAK_WIDTH);
-		// Local maxima validation (if found)
-		LocalMaximaValidation(
-			RIGHT_LINE,
-			local_maxima_found,
-			lane_centers,
-			current_row,
-			right_line_points,
-			right_index,
-			right_line_point_found);
+		// Draw right line points
+		for (std::vector<cv::Point>::iterator point = 
+			right_line_points.begin() ; 
+			point != right_line_points.end(); ++point)
+			cv::circle(image, *point, 1, 250, -1);
 
-		/* Left side scanning */ 
-		left_line_point_found = false;
-		// Prepare image row vector to scan
-		image_row_vector = 
-			(std::vector<int>) image.row(current_row).colRange(0, left_index);
-		// Search for local maxima
-		local_maxima_found = 
-			LocMax_pw(image_row_vector, MAX_PEAK_HEIGHT, MAX_PEAK_WIDTH);
-		// Local maxima validation (if found)
-		LocalMaximaValidation(
-			LEFT_LINE,
-			local_maxima_found,
-			lane_centers,
-			current_row,
-			left_line_points,
-			left_index,
-			left_line_point_found);
-
-		// Center points calculation
-		if (right_line_point_found == true)
-		{			
-			int cent = right_line_points.back().x - (ALLOWED_DEVIATION)>50? 
-				right_line_points.back().x - ALLOWED_DEVIATION:
-				ALLOWED_DEVIATION;
-			lane_centers.push_back(cv::Point2f(cent, current_row));
-		 	last_center_position = lane_centers[1].x;
-	 	}
-		else if (left_line_point_found == true)
-		{
-			int cent = left_line_points.back().x + ALLOWED_DEVIATION<image_width-ALLOWED_DEVIATION? 
-				left_line_points.back().x + ALLOWED_DEVIATION:
-				image_width-ALLOWED_DEVIATION;
-			lane_centers.push_back(cv::Point2f(cent, current_row));
-			last_center_position = lane_centers[1].x;    
-	 	}
-
-		current_row -= ROW_STEP;	
+		// Draw left line points
+		for (std::vector<cv::Point>::iterator point = 
+			left_line_points.begin() ; 
+			point != left_line_points.end(); ++point)
+			cv::circle(image, *point, 1, 50, -1);
 	}
 
-	/* --------------- Steering calculation --------------- */
+	// Curve degree calculation
 	bool rf = false;
 	bool DerFlag = false;
 	bool IzqFlag = false;
@@ -233,29 +178,7 @@ void imageCb(const sensor_msgs::ImageConstPtr& msg)
 		curvature_degree = 90 + int(57*atan(m)); 
 		
 		if(DEBUG)
-		{
-			// Draw lines begin
-			cv::circle(image,cv::Point(left_line_points.front()), 3, 55, -1);
-			cv::circle(image,cv::Point(right_line_points.front()), 3, 255, -1);
-		
-			// Draw lane centers
-			for (std::vector<cv::Point>::iterator point = 
-				lane_centers.begin() ; 
-				point != lane_centers.end(); ++point)
-				cv::circle(image, *point, 1, 155, -1);
-	
-			// Draw right line points
-			for (std::vector<cv::Point>::iterator point = 
-				right_line_points.begin() ; 
-				point != right_line_points.end(); ++point)
-				cv::circle(image, *point, 1, 250, -1);
-
-			// Draw left line points
-			for (std::vector<cv::Point>::iterator point = 
-				left_line_points.begin() ; 
-				point != left_line_points.end(); ++point)
-				cv::circle(image, *point, 1, 50, -1);
-		
+		{		
 			// Draw cord line
 			cv::line(image, cv::Point(p1,p2), cv::Point(p3,p4), 100, 3);
 			cv::circle(image, cv::Point(p1, p2), 3, 200, -1);
@@ -265,13 +188,11 @@ void imageCb(const sensor_msgs::ImageConstPtr& msg)
 	}
 	
 	last_center_deviation = center_deviation;
-
-	// Servo PWM calculation
-	servo_PWM = CalculateServoPWM(
-		center_deviation, curvature_degree, last_center_deviation); 
 	
-	//Servo PWM saturation
-	steering_PWM.data = ServoSaturation(servo_PWM);
+	//Servo PWM calculation and saturation
+	steering_PWM.data = ServoSaturation(
+		CalculateServoPWM(
+			center_deviation, curvature_degree, last_center_deviation));
 
 	/* --------------- Speed PWM Calculation --------------- */
 	float nouvtht=(curvature_degree/90)-1;
