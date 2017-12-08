@@ -110,31 +110,6 @@ void imageCb(const sensor_msgs::ImageConstPtr& msg)
 		lane_centers,
 		right_line_points,
 		left_line_points);
-	
-	if(DEBUG)
-	{
-		// Draw lines begin
-		cv::circle(image,cv::Point(left_line_points.front()), 3, 55, -1);
-		cv::circle(image,cv::Point(right_line_points.front()), 3, 255, -1);
-	
-		// Draw lane centers
-		for (std::vector<cv::Point>::iterator point = 
-			lane_centers.begin() ; 
-			point != lane_centers.end(); ++point)
-			cv::circle(image, *point, 1, 155, -1);
-
-		// Draw right line points
-		for (std::vector<cv::Point>::iterator point = 
-			right_line_points.begin() ; 
-			point != right_line_points.end(); ++point)
-			cv::circle(image, *point, 1, 250, -1);
-
-		// Draw left line points
-		for (std::vector<cv::Point>::iterator point = 
-			left_line_points.begin() ; 
-			point != left_line_points.end(); ++point)
-			cv::circle(image, *point, 1, 50, -1);
-	}
 
 	// Curve degree calculation
 	bool rf = false;
@@ -187,14 +162,12 @@ void imageCb(const sensor_msgs::ImageConstPtr& msg)
 		  
 	}
 	
-	last_center_deviation = center_deviation;
-	
-	//Servo PWM calculation and saturation
+	// Servo PWM calculation and saturation
 	steering_PWM.data = ServoSaturation(
 		CalculateServoPWM(
 			center_deviation, curvature_degree, last_center_deviation));
 
-	/* --------------- Speed PWM Calculation --------------- */
+	// Speed PWM Calculation 
 	float nouvtht=(curvature_degree/90)-1;
 	if (nouvtht<0)
 	{
@@ -223,6 +196,8 @@ void imageCb(const sensor_msgs::ImageConstPtr& msg)
 		pubMsg.publish(LaneMsg);
 	}
 
+	last_steering_PWM = steering_PWM.data;
+	last_center_deviation = center_deviation;
 	e2 = cv::getTickCount();
 	elapsed_time = (e2 - e1)/cv::getTickFrequency();
 

@@ -14,14 +14,16 @@ int RIGHT_LINE = -1;
 int LEFT_LINE = 1;
 int const RIGHT_LANE_ORIGIN = 128;
 int const LEFT_LANE_ORIGIN = RIGHT_LANE_ORIGIN - LANE_WIDTH;
-float const IMAGE_PERCENTAGE = 0.7;
+float const IMAGE_PERCENTAGE = 0.75;
 int const ROW_STEP = 4;
+int const SERVO_STEP = 3;
 int const SEARCH_RANGE = 10;
-int const ALLOWED_DEVIATION = LANE_WIDTH/2;
+int const ALLOWED_DEVIATION = LANE_WIDTH/4;
 int const FILTER_KERNEL_SIZE = 5;
 int const GRAY_THRESHOLD = 50;
 int const MAX_PEAK_HEIGHT = 25;
 int const MAX_PEAK_WIDTH = 15;
+int const SAFE_MARGIN = 10;
 
 /* Global variables initialization */
 std_msgs::Int16 steering_PWM, speed_PWM;
@@ -29,6 +31,7 @@ int last_center_position = RIGHT_LANE_ORIGIN;
 int center_deviation = 0;
 int curvature_degree = SERVO_CENTER;
 int last_center_deviation = 0;
+int last_steering_PWM = SERVO_CENTER;
 int e1, e2;
 float elapsed_time;
 
@@ -73,21 +76,27 @@ int ServoSaturation(int servo_PWM)
 {
     int PWM_value;
 
-    if (servo_PWM > steering_PWM.data + 3)
+    if (servo_PWM > last_steering_PWM + SERVO_STEP)
 	{
-		servo_PWM += 3;
+		servo_PWM += 1;
 	}
-	else if (servo_PWM < steering_PWM.data - 3)
+	else if (servo_PWM < last_steering_PWM - SERVO_STEP)
 	{
-		servo_PWM -= 3;
+		servo_PWM -= 1;
 	}
 
     if (servo_PWM > MAX_STEERING_ANGLE_RIGHT)
-    	PWM_value = MAX_STEERING_ANGLE_RIGHT;
-	else if (servo_PWM < MAX_STEERING_ANGLE_LEFT)
-    	PWM_value = MAX_STEERING_ANGLE_LEFT;
+    {
+        PWM_value = MAX_STEERING_ANGLE_RIGHT;
+    }
+    else if (servo_PWM < MAX_STEERING_ANGLE_LEFT)
+    {
+        PWM_value = MAX_STEERING_ANGLE_LEFT;
+    }
     else
+    {
         PWM_value = servo_PWM;
+    }
 
     return PWM_value;
 }
@@ -167,6 +176,7 @@ void LineDetection(
 	bool right_line_point_found;
 	bool left_line_point_found; 
     std::vector<int> image_row_vector, local_maxima_found;
+    cv::Point center_found;
 
     // Set initial conditions
     left_index = last_center_position;
@@ -227,22 +237,52 @@ void LineDetection(
 
 		// Center points calculation
 		if (right_line_point_found == true)
-		{			
-			int cent = right_line_points.back().x - (ALLOWED_DEVIATION)>50? 
-				right_line_points.back().x - ALLOWED_DEVIATION:
-				ALLOWED_DEVIATION;
-			lane_centers.push_back(cv::Point2f(cent, current_row));
-		 	last_center_position = lane_centers[1].x;
+		{	
+			int cent = right_line_points.back().x - (LANE_WIDTH/2) > SAFE_MARGIN ? 
+				right_line_points.back().x - (LANE_WIDTH/2) :
+				SAFE_MARGIN;
+            lane_centers.push_back(cv::Point2f(cent, current_row));
+		 	last_center_position = lane_centers[2].x;
 	 	}
 		else if (left_line_point_found == true)
 		{
-			int cent = left_line_points.back().x + ALLOWED_DEVIATION<image_width-ALLOWED_DEVIATION? 
-				left_line_points.back().x + ALLOWED_DEVIATION:
-				image_width-ALLOWED_DEVIATION;
-			lane_centers.push_back(cv::Point2f(cent, current_row));
-			last_center_position = lane_centers[1].x;    
-	 	}
+			int cent = left_line_points.back().x + (LANE_WIDTH/2) < image_width - SAFE_MARGIN ? 
+				left_line_points.back().x + (LANE_WIDTH/2):
+				image_width - SAFE_MARGIN;
+            lane_centers.push_back(cv::Point2f(cent, current_row));
+			last_center_position = lane_centers[2].x;    
+         }
+         else
+            last_center_position = 
+                DRIVE_RIGHT_LANE == true? 
+                RIGHT_LANE_ORIGIN :
+                LEFT_LANE_ORIGIN;
 
 		current_row -= ROW_STEP;	
+    }
+    
+    if(DEBUG)
+	{
+		// Draw lines begin
+		cv::circle(image,cv::Point(left_line_points.front()), 3, 55, -1);
+		cv::circle(image,cv::Point(right_line_points.front()), 3, 255, -1);
+	
+		// Draw lane centers
+		for (std::vector<cv::Point>::iterator point = 
+			lane_centers.begin() ; 
+			point != lane_centers.end(); ++point)
+			cv::circle(image, *point, 1, 155, -1);
+
+		// Draw right line points
+		for (std::vector<cv::Point>::iterator point = 
+			right_line_points.begin() ; 
+			point != right_line_points.end(); ++point)
+			cv::circle(image, *point, 1, 250, -1);
+
+		// Draw left line points
+		for (std::vector<cv::Point>::iterator point = 
+			left_line_points.begin() ; 
+			point != left_line_points.end(); ++point)
+			cv::circle(image, *point, 1, 50, -1);
 	}
 }
