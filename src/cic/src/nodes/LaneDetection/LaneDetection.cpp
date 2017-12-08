@@ -73,115 +73,120 @@ void imageCb(const sensor_msgs::ImageConstPtr& msg)
 	
 	e1 = cv::getTickCount();
 
-	// Image shape
-	cv::Mat image = cv_ptr -> image;
+	cv::Mat image;
+	int image_height;
+	int image_width;
+	int left_index;
+	int right_index;
+	int current_row;
+	int lane_center;
+	float dist_to_found_center; 
+	bool right_line_point_found;
+	bool left_line_point_found; 
+	int servo_PWM;
+	cv::Vec4f line;
+	cv::Point center_point_found;
+	std::vector<cv::Point> lane_centers;
+	std::vector<cv::Point> left_line_points;
+	std::vector<cv::Point> right_line_points;
+	std::vector<int> image_row_vector, local_maxima_found;
+
+	// Image allocator and shape extraction
+	image = cv_ptr -> image;
 	image_height = image.size().height;
 	image_width = image.size().width;
 
-	/* --------------- Color transform (fill black corners) --------------- */	
-	for (int i = image_height * IMAGE_PERCENTAGE; i<image_height; i++)
+	// Color transform used to fill black corners 	
+	for (int i = image_height * IMAGE_PERCENTAGE; i < image_height; i++)
 	{
 		for (int j = 0; j < image_width; j++)
 		{
-			if (image.at<uchar>(i,j) < 50)
+			if (image.at<uchar>(i,j) < GRAY_THRESHOLD)
 			{
 				image.at<uchar>(i,j) = rand()%6 + 87;
 			}
 		}	
 	}
 
-	// --------------- Image filtering --------------- //
-	medianBlur(image, image, 5);
+	/* ---  Image filtering --- */
+	medianBlur(image, image, FILTER_KERNEL_SIZE);
 
-	// --------------- Lane detection algorithm --------------- //
-	// Initial conditions
-	dist_to_found_point = 0.0;
+	/* --- Lane detection algorithm --- */
+
+	// Set initial conditions
     left_index = last_center_position;
     right_index = last_center_position;
-    row_index = last_center_position;
-    current_row = image_height - 9;
-	right_line_point_found = false;
-	left_line_point_found = false; 
+	current_row = image_height - 9; 
+	dist_to_found_center = -1.0;
     lane_centers.clear();
     left_line_points.clear();
-    right_line_points.clear();
+	right_line_points.clear();
+	
+	// Set initial line points
     lane_centers.push_back(
-		cv::Point2f(last_center_position, image_height - 3));	
+		cv::Point2f(last_center_position, image_height - 1));	
     left_line_points.push_back(cv::Point2f(
-		last_center_position - ALLOWED_DEVIATION, image_height - 3));
+		last_center_position - (LANE_WIDTH/2), image_height - 1));
     right_line_points.push_back(cv::Point2f(
-		last_center_position + ALLOWED_DEVIATION, image_height - 3));
-     
+		last_center_position + (LANE_WIDTH/2), image_height - 1));
+	
+	// Image scanning by rows
 	while (current_row > (image_height * IMAGE_PERCENTAGE))
   	{
- 		//Lado Derecho
-   		right_line_point_found = false;
-		image_row_vector = 
-			(std::vector<int>) image.row(current_row).colRange(right_index,image_width);
-		local_maxima_found = LocMax_pw(image_row_vector, 25, 15);
-		if (!(local_maxima_found.empty()))
-		{
-			found_point = 
-				cv::Point(local_maxima_found[0] + right_index, current_row);
-			dist_to_found_point = 
-				cv::norm(right_line_points.back() - found_point);
 
-			if (dist_to_found_point < ALLOWED_DEVIATION)
-                { 
-                	right_line_points.push_back(found_point);
-					row_index = right_line_points.back().x - SEARCH_RANGE;
-                    right_line_point_found = true;
-                }
-			else 
-				row_index = lane_centers.back().x;
-		}
-		else
-		{
-			row_index=lane_centers.back().x;
-		} 
-		
-		right_index = row_index;
-   
-		//Lado izquierdo
-   		left_line_point_found = false;
+		/* Right side scanning */
+		right_line_point_found = false;
+		// Prepare image row vector to scan
 		image_row_vector = 
-			(std::vector<int>) image.row(current_row).colRange(0,left_index);
-		local_maxima_found = LocMax_pw(image_row_vector, 25, 15);
-		if (!(local_maxima_found.empty()))
-		{
-			found_point = 
-				cv::Point(local_maxima_found.back(), current_row);
-			dist_to_found_point = 
-				cv::norm(left_line_points.back() - found_point);
-        	
-			if (dist_to_found_point < ALLOWED_DEVIATION)
-        	{ 
-          		left_line_points.push_back(found_point);
-				row_index = left_line_points.back().x + SEARCH_RANGE;
-            	left_line_point_found = true;
-        	}
-			else 
-				row_index = lane_centers.back().x;
-		}
-		else 
-		{
-			row_index = lane_centers.back().x;
-		}
-		   
-		left_index = row_index;
+			(std::vector<int>) image.row(current_row).colRange(right_index, image_width);
+		// Search for local maxima
+		local_maxima_found = 
+			LocMax_pw(image_row_vector, MAX_PEAK_HEIGHT, MAX_PEAK_WIDTH);
+		// Local maxima validation (if found)
+		LocalMaximaValidation(
+			RIGHT_LINE,
+			local_maxima_found,
+			lane_centers,
+			current_row,
+			right_line_points,
+			right_index,
+			right_line_point_found);
 
+		/* Left side scanning */ 
+		left_line_point_found = false;
+		// Prepare image row vector to scan
+		image_row_vector = 
+			(std::vector<int>) image.row(current_row).colRange(0, left_index);
+		// Search for local maxima
+		local_maxima_found = 
+			LocMax_pw(image_row_vector, MAX_PEAK_HEIGHT, MAX_PEAK_WIDTH);
+		// Local maxima validation (if found)
+		LocalMaximaValidation(
+			LEFT_LINE,
+			local_maxima_found,
+			lane_centers,
+			current_row,
+			left_line_points,
+			left_index,
+			left_line_point_found);
+
+		// Center points calculation
 		if (right_line_point_found == true)
-		{
-			int cent = right_line_points.back().x - ALLOWED_DEVIATION>50? right_line_points.back().x - ALLOWED_DEVIATION:ALLOWED_DEVIATION;
-	   		lane_centers.push_back(cv::Point2f(cent, current_row));
-			last_center_position = lane_centers[1].x;
-		}
+		{			
+			int cent = right_line_points.back().x - (ALLOWED_DEVIATION)>50? 
+				right_line_points.back().x - ALLOWED_DEVIATION:
+				ALLOWED_DEVIATION;
+			lane_centers.push_back(cv::Point2f(cent, current_row));
+		 	last_center_position = lane_centers[1].x;
+	 	}
 		else if (left_line_point_found == true)
 		{
-			int cent = left_line_points.back().x + ALLOWED_DEVIATION<image_width-ALLOWED_DEVIATION? left_line_points.back().x+ALLOWED_DEVIATION:image_width-ALLOWED_DEVIATION;
-	   		lane_centers.push_back(cv::Point2f(cent, current_row));
-	   		last_center_position = lane_centers[1].x;    
-		}	
+			int cent = left_line_points.back().x + ALLOWED_DEVIATION<image_width-ALLOWED_DEVIATION? 
+				left_line_points.back().x + ALLOWED_DEVIATION:
+				image_width-ALLOWED_DEVIATION;
+			lane_centers.push_back(cv::Point2f(cent, current_row));
+			last_center_position = lane_centers[1].x;    
+	 	}
 
 		current_row -= ROW_STEP;	
 	}
@@ -192,13 +197,13 @@ void imageCb(const sensor_msgs::ImageConstPtr& msg)
 	bool IzqFlag = false;
 	if (right_line_points.size() > 8)
 	{
-	     cv::fitLine(right_line_points,line,CV_DIST_L2,0,0.01,0.01);
+	     cv::fitLine(right_line_points, line, CV_DIST_L2,0,0.01,0.01);
 	     rf=true;    
 	     DerFlag=true;    
 	}		
 	else if (left_line_points.size() > 5)
 	{
-	     cv::fitLine(left_line_points,line,CV_DIST_L2,0,0.01,0.01);;
+	     cv::fitLine(left_line_points, line, CV_DIST_L2,0,0.01,0.01);;
 	     rf=true; 
 	     IzqFlag=true;
 	}		
@@ -323,9 +328,8 @@ int main(int argc, char** argv)
 	ros::param::get("~direct_mode", DIRECT_CONTROL);
 	ros::param::get("~max_vel", MAX_VEL);
 	ros::param::get("~lane_width", LANE_WIDTH);
+	ros::param::get("~servo_center_position", SERVO_CENTER);
 	ros::param::get("~drive_right_lane", DRIVE_RIGHT_LANE);
-	ros::param::get("~image_percentage", IMAGE_PERCENTAGE);
-	ros::param::get("~row_step", ROW_STEP);
 	ros::param::get("~max_steering_angle_right", 
 		MAX_STEERING_ANGLE_RIGHT);
 	ros::param::get("~max_steering_angle_left", 

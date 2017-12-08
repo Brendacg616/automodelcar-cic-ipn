@@ -24,9 +24,8 @@
     <param name="direct_mode" value="false" type="bool" />
     <param name="max_vel" value="-1000" type="int" />
     <param name="lane_width" value="110" type="int" />
+    <param name="servo_center_position" value="90" type="int" />
     <param name="drive_right_lane" value="true" type="bool" />
-    <param name="image_percentage" value="0.7" type="double" />
-    <param name="row_step" value="4" type="int" />
     <param name="max_steering_angle_right" value="160" type="int" />
     <param name="max_steering_angle_left" value="20" type="int" />
     </node>

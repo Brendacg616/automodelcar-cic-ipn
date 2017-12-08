@@ -2,46 +2,35 @@
 static const std::string LANE_DETECTION_WINDOW = "Lane Detection";
 bool DEBUG = false;
 bool DIRECT_CONTROL = false;
-float IMAGE_PERCENTAGE = 0.8;
 int MAX_STEERING_ANGLE_LEFT = 20;
 int MAX_STEERING_ANGLE_RIGHT = 160;
 int MAX_VEL = -500;
 int LANE_WIDTH = 110;
+int SERVO_CENTER = 90;
 bool DRIVE_RIGHT_LANE = true;
 
 /* Global Constants initialization */
+int RIGHT_LINE = -1;
+int LEFT_LINE = 1;
 int const RIGHT_LANE_ORIGIN = 128;
 int const LEFT_LANE_ORIGIN = RIGHT_LANE_ORIGIN - LANE_WIDTH;
-int ROW_STEP = 4;
-int SEARCH_RANGE = 10;
-int  ALLOWED_DEVIATION = LANE_WIDTH/2;
+float const IMAGE_PERCENTAGE = 0.7;
+int const ROW_STEP = 4;
+int const SEARCH_RANGE = 10;
+int const ALLOWED_DEVIATION = LANE_WIDTH/2;
+int const FILTER_KERNEL_SIZE = 5;
+int const GRAY_THRESHOLD = 50;
+int const MAX_PEAK_HEIGHT = 25;
+int const MAX_PEAK_WIDTH = 15;
 
 /* Global variables initialization */
-int image_height;
-int image_width;
-cv::Vec4f line;
 std_msgs::Int16 steering_PWM, speed_PWM;
-int servo_PWM = 90;
-cv::Point found_point;
 int last_center_position = RIGHT_LANE_ORIGIN;
 int center_deviation = 0;
-int curvature_degree = 90;
+int curvature_degree = SERVO_CENTER;
 int last_center_deviation = 0;
 int e1, e2;
 float elapsed_time;
-
-// imageCb variables decalration
-float dist_to_found_point;
-int left_index;
-int right_index;
-int row_index;
-int current_row; 
-bool right_line_point_found = false;
-bool left_line_point_found = false; 
-std::vector<cv::Point> lane_centers;
-std::vector<cv::Point> left_line_points;
-std::vector<cv::Point> right_line_points;
-std::vector<int> image_row_vector, local_maxima_found;
 
  /*
   * Calculates the servo PWM accordingly to the center_deviation,
@@ -103,3 +92,57 @@ int ServoSaturation(int servo_PWM)
 
     return PWM_value;
 }
+
+ /*
+  * Validates the local maxima found through 
+  * euclidian distance to last line point
+  */
+ void LocalMaximaValidation(
+    int line,
+    std::vector<int> local_maxima_found,
+    std::vector<cv::Point> lane_centers,
+    int current_row,
+    std::vector<cv::Point>& line_points,
+    int& index,
+    bool& point_found_flag)
+  {
+    int dist_to_found_point = 0.0;
+    int peak_location;
+    cv::Point found_point;
+
+    if (!(local_maxima_found.empty()))
+    {
+        // Get peak location accordingly to the line
+        peak_location = 
+            line == RIGHT_LINE ?
+            local_maxima_found.front() + index:
+            local_maxima_found.back();
+
+        // Set the first local maxima found as found point
+        found_point = 
+            cv::Point(peak_location, current_row);
+
+        // Euclidian distance from last right line point to found point
+        dist_to_found_point = 
+            cv::norm(line_points.back() - found_point);
+
+        // Point found validation through distance
+        if (dist_to_found_point < ALLOWED_DEVIATION)
+            { 
+                // Add found point to line
+                line_points.push_back(found_point);
+                // Adjust row index accordingly to the found point and 
+                // a search range value.
+                index = line_points.back().x + line * SEARCH_RANGE;
+                point_found_flag = true;
+            }
+        else 
+            // No right line point found
+            index = lane_centers.back().x;
+    }
+    else
+    {
+        // No local maxima found
+        index = lane_centers.back().x;
+    } 
+  }
