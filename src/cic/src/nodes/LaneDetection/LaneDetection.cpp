@@ -12,6 +12,7 @@
 #include "cic/Lane.h"
 #include "LocMax_pw.cpp"
 #include "LaneDetection.h"
+#include <math.h>
 
 class LaneDetection
 {
@@ -59,7 +60,8 @@ LaneDetection()
 
 void imageCb(const sensor_msgs::ImageConstPtr& msg)
 {
-    cv_bridge::CvImagePtr cv_ptr;
+	cv_bridge::CvImagePtr cv_ptr;
+	
     try
     {
      	cv_ptr = cv_bridge::toCvCopy(
@@ -76,7 +78,6 @@ void imageCb(const sensor_msgs::ImageConstPtr& msg)
 	cv::Mat image;
 	int image_height;
 	int image_width;
-	int servo_PWM;
 	cv::Vec4f line;
 	std::vector<cv::Point> lane_centers;
 	std::vector<cv::Point> left_line_points;
@@ -111,7 +112,7 @@ void imageCb(const sensor_msgs::ImageConstPtr& msg)
 		right_line_points,
 		left_line_points);
 
-	// Curve degree calculation
+	// Curvature degree calculation
 	bool rf = false;
 	bool DerFlag = false;
 	bool IzqFlag = false;
@@ -150,7 +151,7 @@ void imageCb(const sensor_msgs::ImageConstPtr& msg)
 	    float m2 = p3 - p1;
 	    float m = (m2 / m1); 
 		 
-		curvature_degree = 90 + int(57*atan(m)); 
+		curvature_degree = SERVO_CENTER + int(atan(m)*(180.0/M_PI)); 
 		
 		if(DEBUG)
 		{		
@@ -162,26 +163,21 @@ void imageCb(const sensor_msgs::ImageConstPtr& msg)
 		  
 	}
 	
-	// Servo PWM calculation and saturation
+	// Servo PWM calculation
 	steering_PWM.data = ServoSaturation(
 		CalculateServoPWM(
-			center_deviation, curvature_degree, last_center_deviation));
+			curvature_degree,
+			center_deviation,  
+			last_center_deviation),
+		steering_PWM.data);
 
-	// Speed PWM Calculation 
-	float nouvtht=(curvature_degree/90)-1;
-	if (nouvtht<0)
-	{
-  		nouvtht=-nouvtht;
-	}
+	// Speed PWM calculation
+	speed_PWM.data = 
+			CalculateSpeedPWM(
+				steering_PWM.data,
+				speed_PWM.data);
 
-	int maxVel=int(MAX_VEL*exp(-0.5*nouvtht));
-	
-	if (speed_PWM.data > (maxVel+9))
-   	{speed_PWM.data -= 2;}
-	else if (speed_PWM.data<=maxVel)
-   	{speed_PWM.data += 7;}
-
-
+	// Messages publication
 	if (DIRECT_CONTROL)
 	{
 		pubDir.publish(steering_PWM);
@@ -196,8 +192,10 @@ void imageCb(const sensor_msgs::ImageConstPtr& msg)
 		pubMsg.publish(LaneMsg);
 	}
 
-	last_steering_PWM = steering_PWM.data;
+	// Set last values
 	last_center_deviation = center_deviation;
+
+	// Get elapsed time
 	e2 = cv::getTickCount();
 	elapsed_time = (e2 - e1)/cv::getTickFrequency();
 
@@ -205,7 +203,7 @@ void imageCb(const sensor_msgs::ImageConstPtr& msg)
 	{		
 		// Print debug info 
 		ROS_INFO(" curvature_degree = %i", curvature_degree);
-		ROS_INFO(" servo_PWM= %i ",servo_PWM);
+		ROS_INFO(" steering_PWM = %i ", steering_PWM.data);
 		ROS_INFO("frame time: %f ----- block end", elapsed_time);
 		cv::imshow(LANE_DETECTION_WINDOW, image);
 		cv::waitKey(3); 
@@ -225,6 +223,7 @@ int main(int argc, char** argv)
 	ros::param::get("~max_vel", MAX_VEL);
 	ros::param::get("~lane_width", LANE_WIDTH);
 	ros::param::get("~servo_center_position", SERVO_CENTER);
+	ros::param::get("~servo_step", SERVO_STEP);
 	ros::param::get("~drive_right_lane", DRIVE_RIGHT_LANE);
 	ros::param::get("~max_steering_angle_right", 
 		MAX_STEERING_ANGLE_RIGHT);

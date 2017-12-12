@@ -5,6 +5,7 @@ bool DIRECT_CONTROL = false;
 int MAX_STEERING_ANGLE_LEFT = 20;
 int MAX_STEERING_ANGLE_RIGHT = 160;
 int MAX_VEL = -500;
+int SERVO_STEP = 2;
 int LANE_WIDTH = 110;
 int SERVO_CENTER = 90;
 bool DRIVE_RIGHT_LANE = true;
@@ -16,7 +17,6 @@ int const RIGHT_LANE_ORIGIN = 128;
 int const LEFT_LANE_ORIGIN = RIGHT_LANE_ORIGIN - LANE_WIDTH;
 float const IMAGE_PERCENTAGE = 0.75;
 int const ROW_STEP = 4;
-int const SERVO_STEP = 3;
 int const SEARCH_RANGE = 10;
 int const ALLOWED_DEVIATION = LANE_WIDTH/4;
 int const FILTER_KERNEL_SIZE = 5;
@@ -24,6 +24,9 @@ int const GRAY_THRESHOLD = 50;
 int const MAX_PEAK_HEIGHT = 25;
 int const MAX_PEAK_WIDTH = 15;
 int const SAFE_MARGIN = 10;
+int const SPEED_INCREASE_STEP = 1;
+int const SPEED_DECREASE_STEP = 3;
+float const SPEED_VAR = 50;
 
 /* Global variables initialization */
 std_msgs::Int16 steering_PWM, speed_PWM;
@@ -31,9 +34,29 @@ int last_center_position = RIGHT_LANE_ORIGIN;
 int center_deviation = 0;
 int curvature_degree = SERVO_CENTER;
 int last_center_deviation = 0;
-int last_steering_PWM = SERVO_CENTER;
 int e1, e2;
 float elapsed_time;
+
+
+/*
+ * Calculates the normal distribution accordingly to the given
+ * average and variance
+ */ 
+int NormalDist(
+    int x,
+    int const HIGHT,
+    float const AVERAGE, 
+    float const VAR)
+{
+    int output;
+    float tmp;
+
+    tmp = exp(-pow((-0.5)*(x-AVERAGE)/VAR,2));
+    ROS_INFO("temp: %.2f", tmp);
+    output = int(tmp*HIGHT);
+
+    return output;
+}
 
  /*
   * Calculates the servo PWM accordingly to the center_deviation,
@@ -41,8 +64,8 @@ float elapsed_time;
   * control.
   */
 int CalculateServoPWM(
-    int center_deviation,
-    int curvature_degree, 
+    int curvature_degree,
+    int center_deviation, 
     int last_center_deviation) 
 {
     int pe;
@@ -72,34 +95,63 @@ int CalculateServoPWM(
   * Saturates the servo PWM value accordingly to the 
   * servo limits.
   */
-int ServoSaturation(int servo_PWM)
+int ServoSaturation(
+    int calculated_servo_PWM,
+    int current_steering_PWM)
 {
-    int PWM_value;
 
-    if (servo_PWM > last_steering_PWM + SERVO_STEP)
+    if (calculated_servo_PWM > current_steering_PWM + SERVO_STEP)
 	{
-		servo_PWM += 1;
+		current_steering_PWM += SERVO_STEP;
 	}
-	else if (servo_PWM < last_steering_PWM - SERVO_STEP)
+	else if (calculated_servo_PWM < current_steering_PWM - SERVO_STEP)
 	{
-		servo_PWM -= 1;
+		current_steering_PWM -= SERVO_STEP;
 	}
 
-    if (servo_PWM > MAX_STEERING_ANGLE_RIGHT)
+    if (current_steering_PWM > MAX_STEERING_ANGLE_RIGHT)
     {
-        PWM_value = MAX_STEERING_ANGLE_RIGHT;
+        current_steering_PWM = MAX_STEERING_ANGLE_RIGHT;
     }
-    else if (servo_PWM < MAX_STEERING_ANGLE_LEFT)
+    else if (current_steering_PWM < MAX_STEERING_ANGLE_LEFT)
     {
-        PWM_value = MAX_STEERING_ANGLE_LEFT;
+        current_steering_PWM = MAX_STEERING_ANGLE_LEFT;
     }
-    else
-    {
-        PWM_value = servo_PWM;
-    }
+    
 
-    return PWM_value;
+    return current_steering_PWM;
 }
+
+/*
+  * Calculates the speed PWM value accordingly to the 
+  * steering values.
+  */
+  int CalculateSpeedPWM(
+    int current_steering_PWM,
+    int current_speed_PWM)
+  {
+    
+    float nouvtht;
+    int calculated_PWM;
+
+    // Calculate the PWM speed value
+    calculated_PWM = NormalDist(
+        current_steering_PWM,
+        MAX_VEL,
+        SERVO_CENTER, 
+        SPEED_VAR);
+  
+    if (calculated_PWM > (current_speed_PWM + SPEED_INCREASE_STEP))
+    {
+        current_speed_PWM += SPEED_DECREASE_STEP;
+    }
+    else if (calculated_PWM < (current_speed_PWM + SPEED_INCREASE_STEP))
+    {
+        current_speed_PWM -= SPEED_INCREASE_STEP;
+    }
+  
+    return current_speed_PWM;
+  }
 
  /*
   * Validates the local maxima found through 
@@ -156,7 +208,7 @@ int ServoSaturation(int servo_PWM)
   }
 
 /*
- * Funtion that Extracts the left line, 
+ * Funtion that extracts the left line, 
  * right line and center line points using 
  * local maxima detection
  */
@@ -181,7 +233,7 @@ void LineDetection(
     // Set initial conditions
     left_index = last_center_position;
     right_index = last_center_position;
-	current_row = image_height - ROW_STEP; 
+	current_row = image_height - 3*ROW_STEP; 
 	dist_to_found_center = -1.0;
     lane_centers.clear();
     left_line_points.clear();
@@ -189,11 +241,11 @@ void LineDetection(
 	
 	// Set initial line points
     lane_centers.push_back(
-		cv::Point2f(last_center_position, image_height - 1));	
+		cv::Point2f(last_center_position, image_height - ROW_STEP));	
     left_line_points.push_back(cv::Point2f(
-		last_center_position - (LANE_WIDTH/2), image_height - 1));
+		last_center_position - (LANE_WIDTH/2), image_height - ROW_STEP));
     right_line_points.push_back(cv::Point2f(
-		last_center_position + (LANE_WIDTH/2), image_height - 1));
+		last_center_position + (LANE_WIDTH/2), image_height - ROW_STEP));
 	
 	// Image scanning by rows
 	while (current_row > (image_height * IMAGE_PERCENTAGE))
