@@ -1,4 +1,4 @@
-//Version  7/12/17 
+//Version  13/12/17 
 #include <ros/ros.h>
 #include <opencv2/opencv.hpp>
 #include <image_transport/image_transport.h>
@@ -65,7 +65,7 @@ void imageCb(const sensor_msgs::ImageConstPtr& msg)
     try
     {
      	cv_ptr = cv_bridge::toCvCopy(
-		msg,sensor_msgs::image_encodings::MONO8);
+			msg, sensor_msgs::image_encodings::MONO8);
     }
    	catch (cv_bridge::Exception& e) 
     {
@@ -209,7 +209,7 @@ void imageCb(const sensor_msgs::ImageConstPtr& msg)
 		ROS_INFO(" curvature_degree = %i", curvature_degree);
 		ROS_INFO(" steering_PWM = %i", steering_PWM.data);
 		ROS_INFO(" speed_PWM =  %i", speed_PWM.data);
-		ROS_INFO("frame time: %f ----- block end", elapsed_time);
+		ROS_INFO(" frame time: %.4f ----- block end", elapsed_time);
 		cv::imshow(LANE_DETECTION_WINDOW, image);
 		cv::waitKey(3); 
 	}     
