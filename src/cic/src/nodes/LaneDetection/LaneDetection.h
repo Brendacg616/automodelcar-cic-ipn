@@ -1,4 +1,4 @@
-// Global Parameters initialization
+/* Global Parameters initialization */
 static const std::string LANE_DETECTION_WINDOW = "Lane Detection";
 bool DEBUG = false;
 bool DIRECT_CONTROL = false;
@@ -35,7 +35,7 @@ int last_center_position = RIGHT_LANE_ORIGIN;
 int center_deviation = 0;
 int curvature_degree = SERVO_CENTER;
 int last_center_deviation = 0;
-int e1, e2;
+int start_time, end_time;
 float elapsed_time;
 
 

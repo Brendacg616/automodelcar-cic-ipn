@@ -34,14 +34,14 @@ LaneDetection()
 	if (DIRECT_CONTROL)
 	{
 		pubDir= nh_.advertise<std_msgs::Int16>(
-			"/manual_control/steering",1); 
+			"/manual_control/steering", 1); 
    		pubVel= nh_.advertise<std_msgs::Int16>(
-			"/manual_control/speed",1);
+			"/manual_control/speed", 1);
 	}
 	else
 	{
 		pubMsg = nh_.advertise<cic::Lane>(
-			"/lane_detection",1);
+			"/lane_detection", 1);
 	}
 
    	if (DEBUG)
@@ -73,7 +73,7 @@ void imageCb(const sensor_msgs::ImageConstPtr& msg)
     	return;
     }
 	
-	e1 = cv::getTickCount();
+	start_time = cv::getTickCount();
 
 	cv::Mat image;
 	int image_height;
@@ -119,29 +119,29 @@ void imageCb(const sensor_msgs::ImageConstPtr& msg)
 	if (right_line_points.size() > 8)
 	{
 	     cv::fitLine(right_line_points, line, CV_DIST_L2,0,0.01,0.01);
-	     rf=true;    
-	     DerFlag=true;    
+	     rf = true;    
+	     DerFlag = true;    
 	}		
 	else if (left_line_points.size() > 5)
 	{
 	     cv::fitLine(left_line_points, line, CV_DIST_L2,0,0.01,0.01);;
-	     rf=true; 
-	     IzqFlag=true;
+	     rf = true; 
+	     IzqFlag = true;
 	}		
 
-	if (rf==true)
+	if (rf == true)
 	{
 	    center_deviation = int(image_width/2) - lane_centers[1].x;	
-		int p1=line[2];
-		int p2=line[3];
-	    int p3=(line[2]+1)+100*line[0];
-	    int p4=(line[3]+1)+100*line[1];
-	    if (IzqFlag==true)
+		int p1 = line[2];
+		int p2 = line[3];
+	    int p3 = (line[2]+1)+100*line[0];
+	    int p4 = (line[3]+1)+100*line[1];
+	    if (IzqFlag == true)
 	    {
 			p3=left_line_points.back().x;
 		 	p4=left_line_points.back().y; 
 	    }
-	    else if (DerFlag==true)
+	    else if (DerFlag == true)
 	    {
 			p3=right_line_points.back().x;
 			p4=right_line_points.back().y; 
@@ -187,7 +187,7 @@ void imageCb(const sensor_msgs::ImageConstPtr& msg)
 		pubVel.publish(speed_PWM);
 	}
 	else
-	{
+	{	
 		cic::Lane LaneMsg;
 		LaneMsg.header.stamp = ros::Time::now();
 		LaneMsg.steering_value = steering_PWM.data;
@@ -199,8 +199,8 @@ void imageCb(const sensor_msgs::ImageConstPtr& msg)
 	last_center_deviation = center_deviation;
 
 	// Get elapsed time
-	e2 = cv::getTickCount();
-	elapsed_time = (e2 - e1)/cv::getTickFrequency();
+	end_time = cv::getTickCount();
+	elapsed_time = (end_time - start_time)/cv::getTickFrequency();
 
 	if(DEBUG)
 	{		
