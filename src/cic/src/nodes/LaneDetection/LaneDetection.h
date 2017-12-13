@@ -9,6 +9,7 @@ int SERVO_STEP = 2;
 int LANE_WIDTH = 110;
 int SERVO_CENTER = 90;
 bool DRIVE_RIGHT_LANE = true;
+float STEERING_SPEED_RATIO = 1.5;
 
 /* Global Constants initialization */
 int RIGHT_LINE = -1;
@@ -24,9 +25,9 @@ int const GRAY_THRESHOLD = 50;
 int const MAX_PEAK_HEIGHT = 25;
 int const MAX_PEAK_WIDTH = 15;
 int const SAFE_MARGIN = 10;
-int const SPEED_INCREASE_STEP = 1;
-int const SPEED_DECREASE_STEP = 3;
-float const SPEED_VAR = 50;
+int const SPEED_INCREASE_STEP = 5;
+int const SPEED_DECREASE_STEP = 10;
+float const MULTIPLY_FACTOR = MAX_VEL / 100.0;
 
 /* Global variables initialization */
 std_msgs::Int16 steering_PWM, speed_PWM;
@@ -37,26 +38,6 @@ int last_center_deviation = 0;
 int e1, e2;
 float elapsed_time;
 
-
-/*
- * Calculates the normal distribution accordingly to the given
- * average and variance
- */ 
-int NormalDist(
-    int x,
-    int const HIGHT,
-    float const AVERAGE, 
-    float const VAR)
-{
-    int output;
-    float tmp;
-
-    tmp = exp(-pow((-0.5)*(x-AVERAGE)/VAR,2));
-    ROS_INFO("temp: %.2f", tmp);
-    output = int(tmp*HIGHT);
-
-    return output;
-}
 
  /*
   * Calculates the servo PWM accordingly to the center_deviation,
@@ -130,17 +111,15 @@ int ServoSaturation(
     int current_steering_PWM,
     int current_speed_PWM)
   {
-    
-    float nouvtht;
+    float tmp;
     int calculated_PWM;
 
-    // Calculate the PWM speed value
-    calculated_PWM = NormalDist(
-        current_steering_PWM,
-        MAX_VEL,
-        SERVO_CENTER, 
-        SPEED_VAR);
-  
+    // Calculate the PWM speed value (lineal function) 
+    tmp = 
+        abs((SERVO_CENTER - current_steering_PWM) * MULTIPLY_FACTOR);
+
+    calculated_PWM = int(STEERING_SPEED_RATIO * tmp) + MAX_VEL;
+
     if (calculated_PWM > (current_speed_PWM + SPEED_INCREASE_STEP))
     {
         current_speed_PWM += SPEED_DECREASE_STEP;

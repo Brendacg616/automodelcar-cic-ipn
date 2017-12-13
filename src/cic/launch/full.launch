@@ -23,6 +23,7 @@
     <param name="debug_mode" value="true" type="bool" />
     <param name="direct_mode" value="false" type="bool" />
     <param name="max_vel" value="-1000" type="int" />
+    <param name="steering_speed_ratio" value="1.5" type="double" />
     <param name="lane_width" value="110" type="int" />
     <param name="servo_center_position" value="90" type="int" />
     <param name="servo_step" value="2" type="int" />

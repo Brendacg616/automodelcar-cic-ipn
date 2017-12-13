@@ -131,7 +131,7 @@ void imageCb(const sensor_msgs::ImageConstPtr& msg)
 
 	if (rf==true)
 	{
-	    center_deviation = image_width/2 - lane_centers[1].x;	
+	    center_deviation = int(image_width/2) - lane_centers[1].x;	
 		int p1=line[2];
 		int p2=line[3];
 	    int p3=(line[2]+1)+100*line[0];
@@ -160,22 +160,25 @@ void imageCb(const sensor_msgs::ImageConstPtr& msg)
 			cv::circle(image, cv::Point(p1, p2), 3, 200, -1);
 			cv::circle(image, cv::Point(p3, p4), 3, 200, -1); 
 		}
-		  
-	}
-	
-	// Servo PWM calculation
-	steering_PWM.data = ServoSaturation(
-		CalculateServoPWM(
-			curvature_degree,
-			center_deviation,  
-			last_center_deviation),
-		steering_PWM.data);
 
-	// Speed PWM calculation
-	speed_PWM.data = 
+		// Servo PWM calculation
+		steering_PWM.data = ServoSaturation(
+			CalculateServoPWM(
+				curvature_degree,
+				center_deviation,  
+				last_center_deviation),
+			steering_PWM.data);
+
+		// Speed PWM calculation
+		speed_PWM.data = 
 			CalculateSpeedPWM(
 				steering_PWM.data,
-				speed_PWM.data);
+				speed_PWM.data);		  
+	}
+	else{
+		if (speed_PWM.data < 0)
+			speed_PWM.data += SPEED_DECREASE_STEP;
+	}
 
 	// Messages publication
 	if (DIRECT_CONTROL)
@@ -202,8 +205,10 @@ void imageCb(const sensor_msgs::ImageConstPtr& msg)
 	if(DEBUG)
 	{		
 		// Print debug info 
+		ROS_INFO(" devistion from center = %i", center_deviation);
 		ROS_INFO(" curvature_degree = %i", curvature_degree);
-		ROS_INFO(" steering_PWM = %i ", steering_PWM.data);
+		ROS_INFO(" steering_PWM = %i", steering_PWM.data);
+		ROS_INFO(" speed_PWM =  %i", speed_PWM.data);
 		ROS_INFO("frame time: %f ----- block end", elapsed_time);
 		cv::imshow(LANE_DETECTION_WINDOW, image);
 		cv::waitKey(3); 
@@ -221,6 +226,7 @@ int main(int argc, char** argv)
 	ros::param::get("~debug_mode", DEBUG);
 	ros::param::get("~direct_mode", DIRECT_CONTROL);
 	ros::param::get("~max_vel", MAX_VEL);
+	ros::param::get("~steering_speed_ratio", STEERING_SPEED_RATIO);
 	ros::param::get("~lane_width", LANE_WIDTH);
 	ros::param::get("~servo_center_position", SERVO_CENTER);
 	ros::param::get("~servo_step", SERVO_STEP);
