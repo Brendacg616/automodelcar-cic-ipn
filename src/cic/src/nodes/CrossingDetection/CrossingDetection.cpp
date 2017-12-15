@@ -72,46 +72,79 @@ void imageCb(const sensor_msgs::ImageConstPtr& msg)
 	int image_height;
 	int image_width;   
 	
-	int i,j,a_point,p_point;
-	std::vector<int> v,loc,pc;
-	std::vector<cv::Point>  ini;
+	int row_index, current_column, p_point;
+	std::vector<int> image_column, local_maxima_found;
+	std::vector<cv::Point>  line_points;
 	
 	// Image allocator and shape extraction
 	image = cv_ptr -> image;
-	transposed_image = image.t();
 	image_height = image.size().height;
 	image_width = image.size().width;
-	
+
 	// Image filtering
-	medianBlur(image, image, 5);
+	medianBlur(image, image, FILTER_KERNEL_SIZE);
 
-	i=image_height-2;
-	j=image_width*0.4;
-	p_point=image_height-1;
-
-	while (j<(image_width*0.7))
+	// Transposed image
+	transposed_image = image.t();
+	
+	// Line detection algorithm
+	// Set initial conditions
+	row_index = 0.0;
+	current_column = image_width * IMAGE_PERCENTAGE_START;
+	p_point = image_height;
+	
+	int dist_to_found_point = 0;
+	int peak_location;
+	cv::Point found_point;
+	// Image scanning by columns
+	while (current_column < (image_width * IMAGE_PERCENTAGE_END))
 	{
-		v=(std::vector<int>) transposed_image.row(j).colRange(image_height*0.5,image_height);
-		loc=LocMax_pw(v,25,25);
-		if (!(loc.empty()))
+		// Prepare image column vector to scan
+		image_column = 
+			(std::vector<int>) transposed_image.row(current_column).colRange(row_index, image_height);
+		// Search for local maxima
+		local_maxima_found = 
+			LocMax_pw(image_column, MAX_PEAK_HEIGHT, MAX_PEAK_WIDTH);
+		// Local maxima validation (if found)
+		if (!(local_maxima_found.empty()))
 		{
-			a_point=int (loc.back()+image_height*0.5);
-			if (abs(p_point-a_point)<7)
+			// Get location of the last local maxima if found
+			peak_location = local_maxima_found.back() + row_index;
+
+			// Set the first local maxima found as found point
+			found_point = 
+				cv::Point(current_column, peak_location);
+			
+			/*// Euclidian distance from last right line point to found point
+			dist_to_found_point = 
+				cv::norm(line_points.back() - found_point);*/
+			
+			if (abs(p_point - peak_location) < 7)
 			{
-				ini.push_back(cv::Point2f(j,a_point));
-				cv::circle(image,cv::Point(j,a_point),1,250,-1);
+				line_points.push_back(
+					cv::Point2f(current_column, peak_location));
+				// row_index = peak_location + SEARCH_RANGE;
 			}
 
-		p_point = a_point;
+			p_point = peak_location;
 		}
-		j+=2;
+
+		current_column += COLUMN_STEP;
+
+		if (DEBUG)
+		{
+			// Draw line points found
+			for (std::vector<cv::Point>::iterator point = 
+				line_points.begin() ; 
+				point != line_points.end(); ++point)
+				cv::circle(image, *point, 1, 255, -1);
+		}
 		
 	}
-	if (ini.size()>15){
+	if (line_points.size()>15){
 		cv::Vec4f p;
-		cv::fitLine(ini, p,CV_DIST_L1,0,0.01,0.01);
+		cv::fitLine(line_points, p,CV_DIST_L1,0,0.01,0.01);
 		float ang = (57*atan(p[1]/p[0]));
-		
 		
 		//ROS_INFO("dist: %i	|| ang: %i",dist,ang);
 		if ((ang>-15.0)&&(ang<15.0))

@@ -28,6 +28,7 @@ int const SAFE_MARGIN = 10;
 int const SPEED_INCREASE_STEP = 5;
 int const SPEED_DECREASE_STEP = 10;
 float const MULTIPLY_FACTOR = MAX_VEL / 100.0;
+short int const GAP = 10;
 
 /* Global variables initialization */
 std_msgs::Int16 steering_PWM, speed_PWM;
@@ -145,7 +146,7 @@ int ServoSaturation(
     int& index,
     bool& point_found_flag)
   {
-    int dist_to_found_point = 0.0;
+    int dist_to_found_point = 0;
     int peak_location;
     cv::Point found_point;
 
@@ -163,7 +164,7 @@ int ServoSaturation(
 
         // Euclidian distance from last right line point to found point
         dist_to_found_point = 
-            cv::norm(line_points.back() - found_point);
+            int(cv::norm(line_points.back() - found_point));
 
         // Point found validation through distance
         if (dist_to_found_point < ALLOWED_DEVIATION)
@@ -212,7 +213,7 @@ void LineDetection(
     // Set initial conditions
     left_index = last_center_position;
     right_index = last_center_position;
-	current_row = image_height - 3*ROW_STEP; 
+	current_row = image_height - GAP; 
 	dist_to_found_center = -1.0;
     lane_centers.clear();
     left_line_points.clear();

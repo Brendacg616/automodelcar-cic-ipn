@@ -30,7 +30,7 @@ To compile the code in "release mode" add the `-s` flag:
 
 ## Run the code
 
-There are different available run modes depending on the function needed. The next subsections explain each mode functionalities and how to run them.
+There are different run modes available, depending on the function needed. The next subsections explain each mode functionalities and how to run them.
 
 ### Camera adjustment mode
 
@@ -50,6 +50,8 @@ A debug window will be displayed with a chessboard layout (see figure 1). To adj
 Figure 1: Chessboard pattern displayed on camera adjustmen mode.
 
 ### Autonomous mode
+This mode launches all the nodes needed to run the car on aoutonomous mode for the next tasks:
+
 TODO
 
 ## Run the code with bags
