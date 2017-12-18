@@ -11,13 +11,13 @@ The ROS distro used is Indigo along with Ubuntu 14.10 LTS. All the C++ and Pyhto
 
 **IMPORTANT: Before starting, make sure you have ROS and all it's deppendencies properly installed on your PC! Otherwise, visit the [ROS Tutorials](http://wiki.ros.org/ROS/Tutorials/InstallingandConfiguringROSEnvironment).**
 
-## Cloning the repository
-In order to start working with the code, first clone the repository by typing:
-
-> git clone https://github.com/Conilo/automodelcar-cic-ipn.git
-
 ## Establish communication with the car
 TODO
+
+## Cloning the repository
+In order to start working with the code, first clone the repository on your /Workspace folder by typing:
+
+> git clone https://github.com/Conilo/automodelcar-cic-ipn.git
 
 ## Build the code:
 Then, it's necesarry to compile the code (also after modifiying any file or node source). To do so, type:
