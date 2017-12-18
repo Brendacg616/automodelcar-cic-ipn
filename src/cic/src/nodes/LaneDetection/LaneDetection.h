@@ -29,6 +29,8 @@ int const SPEED_INCREASE_STEP = 5;
 int const SPEED_DECREASE_STEP = 10;
 float const MULTIPLY_FACTOR = MAX_VEL / 100.0;
 short int const GAP = 10;
+short int const MIN_RIGHT_LINE_POINTS = 8;
+short int const MIN_LEFT_LINE_POINTS = 5;
 
 /* Global variables initialization */
 std_msgs::Int16 steering_PWM, speed_PWM;

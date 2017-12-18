@@ -80,9 +80,13 @@ include_directories(
 )
 
 ## Declare a C++ library
-#add_library(${PROJECT_NAME}
-   #src/nodes/ImageProcessing/mod/image_processing.h
-#)
+add_library(${PROJECT_NAME}
+   library/LocalMaximaDetection.cpp
+)
+
+target_include_directories(${PROJECT_NAME} PUBLIC
+  library
+)
 
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
@@ -109,9 +113,11 @@ target_link_libraries(ImageProcessing
 
 target_link_libraries(LaneDetection
    ${catkin_LIBRARIES}
+   ${PROJECT_NAME}
 )
 
 target_link_libraries(CrossingDetection
    ${catkin_LIBRARIES}
+   ${PROJECT_NAME}
 )
 

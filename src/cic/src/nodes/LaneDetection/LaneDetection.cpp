@@ -10,7 +10,7 @@
 #include <iostream>
 #include "std_msgs/Int16.h"
 #include "cic/Lane.h"
-#include "LocMax_pw.cpp"
+#include <LocalMaximaDetection.cpp>
 #include "LaneDetection.h"
 #include <math.h>
 
@@ -78,10 +78,13 @@ void imageCb(const sensor_msgs::ImageConstPtr& msg)
 	cv::Mat image;
 	int image_height;
 	int image_width;
-	cv::Vec4f line;
 	std::vector<cv::Point> lane_centers;
 	std::vector<cv::Point> left_line_points;
 	std::vector<cv::Point> right_line_points;
+	bool line_found;
+	bool right_line_found;
+	bool left_line_found;
+	cv::Vec4f line;
 
 	// Image allocator and shape extraction
 	image = cv_ptr -> image;
@@ -113,35 +116,40 @@ void imageCb(const sensor_msgs::ImageConstPtr& msg)
 		left_line_points);
 
 	// Curvature degree calculation
-	bool rf = false;
-	bool DerFlag = false;
-	bool IzqFlag = false;
-	if (right_line_points.size() > 8)
+	line_found = false;
+	right_line_found = false;
+	left_line_found = false;
+	if (right_line_points.size() > MIN_RIGHT_LINE_POINTS)
 	{
-	     cv::fitLine(right_line_points, line, CV_DIST_L2,0,0.01,0.01);
-	     rf = true;    
-	     DerFlag = true;    
+	     cv::fitLine(
+			 right_line_points, line,
+			 CV_DIST_L2, 0, 0.01 ,0.01);
+	     line_found = true;    
+	     right_line_found = true;    
 	}		
-	else if (left_line_points.size() > 5)
+	else if (left_line_points.size() > MIN_LEFT_LINE_POINTS)
 	{
-	     cv::fitLine(left_line_points, line, CV_DIST_L2,0,0.01,0.01);;
-	     rf = true; 
-	     IzqFlag = true;
+	     cv::fitLine(
+			 left_line_points, line,
+			 CV_DIST_L2, 0, 0.01, 0.01);
+	     line_found = true; 
+	     left_line_found = true;
 	}		
 
-	if (rf == true)
+	if (line_found == true)
 	{
 	    center_deviation = int(image_width/2) - lane_centers[1].x;	
 		int p1 = line[2];
 		int p2 = line[3];
 	    int p3 = (line[2]+1)+100*line[0];
-	    int p4 = (line[3]+1)+100*line[1];
-	    if (IzqFlag == true)
+		int p4 = (line[3]+1)+100*line[1];
+		
+	    if (left_line_found == true)
 	    {
 			p3=left_line_points.back().x;
 		 	p4=left_line_points.back().y; 
 	    }
-	    else if (DerFlag == true)
+	    else if (right_line_found == true)
 	    {
 			p3=right_line_points.back().x;
 			p4=right_line_points.back().y; 

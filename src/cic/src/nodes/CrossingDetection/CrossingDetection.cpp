@@ -10,7 +10,7 @@
 #include <numeric>
 #include "cic/Intersection.h"
 #include "std_msgs/Int16.h"
-#include "LocMax_pw.cpp"
+#include <LocalMaximaDetection.cpp>
 #include "CrossingDetection.h"
 
 //#include <opencv2/video/tracking.hpp>
@@ -141,7 +141,7 @@ void imageCb(const sensor_msgs::ImageConstPtr& msg)
 		}
 		
 	}
-	if (line_points.size()>15){
+	if (line_points.size() > 15){
 		cv::Vec4f p;
 		cv::fitLine(line_points, p,CV_DIST_L1,0,0.01,0.01);
 		float ang = (57*atan(p[1]/p[0]));
