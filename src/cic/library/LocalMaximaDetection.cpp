@@ -1,6 +1,6 @@
 #include <vector>
 
-std::vector<int> LocMax_pw(std::vector<int> Vi, int pProm, int w)
+std::vector<int> LocMax_pw(std::vector<int> Vi, int min_hight, int min_width)
 //std::vector<int> LocMax(std::vector<uchar> Vi, int pP)
 {
 	
@@ -10,7 +10,6 @@ std::vector<int> LocMax_pw(std::vector<int> Vi, int pProm, int w)
 	std::vector<int>x,y,xProm,yProm, width;
 	int j,d1,d2;
 	int i=1;
-	//ROS_INFO("Width: %i",Tam); 256
 	while (i<Tam)
 	{
 		j=1;
@@ -119,7 +118,7 @@ std::vector<int> LocMax_pw(std::vector<int> Vi, int pProm, int w)
 			j++;
 		d2=j;
 		int D=d2+d1;
-		if ((y[i]-P>=pProm)&&(D<w))
+		if ((y[i]-P>=min_hight)&&(D>=min_width))
 		{
 			xProm.push_back(x[i]);
 			/*ROS_INFO("w: %i",D);
