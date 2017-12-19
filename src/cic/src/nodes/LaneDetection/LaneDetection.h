@@ -298,8 +298,12 @@ void LineDetection(
     if(DEBUG)
 	{
 		// Draw lines begin
-		cv::circle(image,cv::Point(left_line_points.front()), 3, 55, -1);
-		cv::circle(image,cv::Point(right_line_points.front()), 3, 255, -1);
+		cv::circle(
+            image, cv::Point(left_line_points.front()), 
+            3, 55, -1);
+		cv::circle(
+            image, cv::Point(right_line_points.front()), 
+            3, 255, -1);
 	
 		// Draw lane centers
 		for (std::vector<cv::Point>::iterator point = 
