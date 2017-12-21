@@ -6,7 +6,6 @@
 #include <cv_bridge/cv_bridge.h>  
 #include <sensor_msgs/image_encodings.h>
 #include <ros/console.h>
-#include <vector>
 #include <iostream>
 #include "std_msgs/Int16.h"
 #include "cic/Lane.h"

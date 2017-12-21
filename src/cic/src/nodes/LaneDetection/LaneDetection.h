@@ -32,7 +32,7 @@ short int const GAP = 10;
 short int const MIN_RIGHT_LINE_POINTS = 8;
 short int const MIN_LEFT_LINE_POINTS = 5;
 
-/* Global variables initialization */
+ /* Global variables initialization */
 std_msgs::Int16 steering_PWM, speed_PWM;
 int last_center_position = RIGHT_LANE_ORIGIN;
 int center_deviation = 0;
@@ -217,9 +217,6 @@ void LineDetection(
     right_index = last_center_position;
 	current_row = image_height - GAP; 
 	dist_to_found_center = -1.0;
-    lane_centers.clear();
-    left_line_points.clear();
-	right_line_points.clear();
 	
 	// Set initial line points
     lane_centers.push_back(
@@ -298,8 +295,12 @@ void LineDetection(
     if(DEBUG)
 	{
 		// Draw lines begin
-		cv::circle(image,cv::Point(left_line_points.front()), 3, 55, -1);
-		cv::circle(image,cv::Point(right_line_points.front()), 3, 255, -1);
+		cv::circle(
+            image, cv::Point(left_line_points.front()), 
+            3, 55, -1);
+		cv::circle(
+            image, cv::Point(right_line_points.front()), 
+            3, 255, -1);
 	
 		// Draw lane centers
 		for (std::vector<cv::Point>::iterator point = 

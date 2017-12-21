@@ -13,8 +13,6 @@
 #include <LocalMaximaDetection.cpp>
 #include "CrossingDetection.h"
 
-//#include <opencv2/video/tracking.hpp>
-
 class CrossingDetection
 {
   	ros::NodeHandle nh_;
@@ -72,10 +70,13 @@ void imageCb(const sensor_msgs::ImageConstPtr& msg)
 	int image_height;
 	int image_width;   
 	
-	int row_index, current_column, p_point;
+	int row_index, current_column, peak_location;
 	std::vector<int> image_column, local_maxima_found;
 	std::vector<cv::Point>  line_points;
-	
+	cv::Point found_point;
+	cv::Vec4f line_polynom;
+	float calculated_angle;
+
 	// Image allocator and shape extraction
 	image = cv_ptr -> image;
 	image_height = image.size().height;
@@ -89,70 +90,68 @@ void imageCb(const sensor_msgs::ImageConstPtr& msg)
 	
 	// Line detection algorithm
 	// Set initial conditions
-	row_index = 0.0;
+	row_index = 0;
 	current_column = image_width * IMAGE_PERCENTAGE_START;
-	p_point = image_height;
-	
-	int dist_to_found_point = 0;
-	int peak_location;
-	cv::Point found_point;
+
 	// Image scanning by columns
 	while (current_column < (image_width * IMAGE_PERCENTAGE_END))
 	{
 		// Prepare image column vector to scan
 		image_column = 
-			(std::vector<int>) transposed_image.row(current_column).colRange(row_index, image_height);
+			(std::vector<int>) transposed_image.row(current_column).colRange(0, image_height);
 		// Search for local maxima
 		local_maxima_found = 
 			LocMax_pw(image_column, MAX_PEAK_HEIGHT, MAX_PEAK_WIDTH);
 		// Local maxima validation (if found)
 		if (!(local_maxima_found.empty()))
 		{
-			// Get location of the last local maxima if found
-			peak_location = local_maxima_found.back() + row_index;
-
-			// Set the first local maxima found as found point
+			// Get location of the last local maxima
+			peak_location = local_maxima_found.back();
+			// Set the found point
 			found_point = 
 				cv::Point(current_column, peak_location);
-			
-			/*// Euclidian distance from last right line point to found point
-			dist_to_found_point = 
-				cv::norm(line_points.back() - found_point);*/
-			
-			if (abs(p_point - peak_location) < 7)
+			// Point found validation through distance
+			if (abs(row_index - peak_location) < MAX_DIST_ALLOWED)
 			{
-				line_points.push_back(
-					cv::Point2f(current_column, peak_location));
-				// row_index = peak_location + SEARCH_RANGE;
+				// Add found point to line
+				line_points.push_back(found_point);
+				// Adjust row index accordingly to the found point and 
+                // a search range value.
+				row_index = peak_location;
 			}
 
-			p_point = peak_location;
+			// Set the row index to he local minima found
+			// (even if it does not belong to the line)
+			if (line_points.size() < MIN_LINE_POINTS)
+			{
+				row_index = peak_location;
+			}
+			
 		}
 
 		current_column += COLUMN_STEP;
-
-		if (DEBUG)
-		{
-			// Draw line points found
-			for (std::vector<cv::Point>::iterator point = 
-				line_points.begin() ; 
-				point != line_points.end(); ++point)
-				cv::circle(image, *point, 1, 255, -1);
-		}
 		
 	}
-	if (line_points.size() > 15){
-		cv::Vec4f p;
-		cv::fitLine(line_points, p,CV_DIST_L1,0,0.01,0.01);
-		float ang = (57*atan(p[1]/p[0]));
+
+	// Verify the line points size
+	if (line_points.size() > LINE_POINTS_REQUIRED)
+	{
+		// Linear regression from the line points
+		cv::fitLine(line_points, line_polynom, 
+			CV_DIST_L1, 0, 0.01, 0.01);
+
+		// Get the line angle form the line polynom
+		calculated_angle = 
+			ToDegrees(
+				atan(line_polynom[1]/line_polynom[0]));
 		
-		//ROS_INFO("dist: %i	|| ang: %i",dist,ang);
-		if ((ang>-15.0)&&(ang<15.0))
+		// Validation of the line by the angle
+		if ((calculated_angle > -15.0) && (calculated_angle < 15.0))
 		{
-			line_angle = ang;
-			dist_to_line = (image_height-p[3])/2;
-			cv::line(image,cv::Point(p[2],p[3]),cv::Point(p[2]+p[0]*50,p[3]+p[1]*50),0);
-			cv::circle(image,cv::Point(p[2],p[3]),1,0,-1);
+			// Set the line attributes
+			line_angle = calculated_angle;
+			dist_to_line = 
+				(image_height - line_polynom[3]) / PIXEL_CM_RATIO_Y;
 		}
 		else
 		{
@@ -175,8 +174,37 @@ void imageCb(const sensor_msgs::ImageConstPtr& msg)
 	end_time = cv::getTickCount();
 	elapsed_time = (end_time - start_time) / cv::getTickFrequency();
 
+	// Print debug information
 	if (DEBUG)
 	{
+		// Print line points
+		if (!(line_points.empty()))
+		{
+			// Draw initial point
+			cv::circle(image, cv::Point(line_points.front()), 
+				3, 255, -1);
+			
+			// Draw the line points rest found
+			for (std::vector<cv::Point>::iterator point = 
+				line_points.begin() ; 
+				point != line_points.end(); ++point)
+				cv::circle(image, *point, 1, 255, -1);
+		}
+
+		// Print the line polynom paramtrization 
+		if (dist_to_line != NO_LINE_DIST)
+		{
+			cv::line(
+				image,
+				cv::Point(line_polynom[2], line_polynom[3]),
+				cv::Point(line_polynom[2] + line_polynom[0]*50, line_polynom[3] + line_polynom[1]*50),
+				0);
+			cv::circle(
+				image,
+				cv::Point(line_polynom[2], line_polynom[3]),
+				1,0,-1);
+		}
+
 		// Print debug info 
 		ROS_INFO(" frame time: %.4f ----- block end", elapsed_time);
 		cv::imshow(CROSSING_DETECTION_WINDOW, image);
