@@ -13,8 +13,6 @@
 #include <LocalMaximaDetection.cpp>
 #include "CrossingDetection.h"
 
-//#include <opencv2/video/tracking.hpp>
-
 class CrossingDetection
 {
   	ros::NodeHandle nh_;
@@ -76,6 +74,8 @@ void imageCb(const sensor_msgs::ImageConstPtr& msg)
 	std::vector<int> image_column, local_maxima_found;
 	std::vector<cv::Point>  line_points;
 	cv::Point found_point;
+	cv::Vec4f line_polynom;
+	float calculated_angle;
 
 	// Image allocator and shape extraction
 	image = cv_ptr -> image;
@@ -120,6 +120,8 @@ void imageCb(const sensor_msgs::ImageConstPtr& msg)
 				row_index = peak_location;
 			}
 
+			// Set the row index to he local minima found
+			// (even if it does not belong to the line)
 			if (line_points.size() < MIN_LINE_POINTS)
 			{
 				row_index = peak_location;
@@ -128,39 +130,28 @@ void imageCb(const sensor_msgs::ImageConstPtr& msg)
 		}
 
 		current_column += COLUMN_STEP;
-
-		// Print debug graphics
-		if (DEBUG)
-		{
-			// Verify if there're any points to print
-			if (!(line_points.empty()))
-			{
-				// Draw initial point
-				cv::circle(image, cv::Point(line_points.front()), 
-					3, 255, -1);
-			
-				// Draw the line points rest found
-				for (std::vector<cv::Point>::iterator point = 
-					line_points.begin() ; 
-					point != line_points.end(); ++point)
-					cv::circle(image, *point, 1, 255, -1);
-			}
-			
-		}
 		
 	}
-	if (line_points.size() > LINE_POINTS_REQUIRED){
-		cv::Vec4f p;
-		cv::fitLine(line_points, p,CV_DIST_L1,0,0.01,0.01);
-		float ang = (57*atan(p[1]/p[0]));
+
+	// Verify the line points size
+	if (line_points.size() > LINE_POINTS_REQUIRED)
+	{
+		// Linear regression from the line points
+		cv::fitLine(line_points, line_polynom, 
+			CV_DIST_L1, 0, 0.01, 0.01);
+
+		// Get the line angle form the line polynom
+		calculated_angle = 
+			ToDegrees(
+				atan(line_polynom[1]/line_polynom[0]));
 		
-		//ROS_INFO("dist: %i	|| ang: %i",dist,ang);
-		if ((ang>-15.0)&&(ang<15.0))
+		// Validation of the line by the angle
+		if ((calculated_angle > -15.0) && (calculated_angle < 15.0))
 		{
-			line_angle = ang;
-			dist_to_line = (image_height-p[3])/2;
-			cv::line(image,cv::Point(p[2],p[3]),cv::Point(p[2]+p[0]*50,p[3]+p[1]*50),0);
-			cv::circle(image,cv::Point(p[2],p[3]),1,0,-1);
+			// Set the line attributes
+			line_angle = calculated_angle;
+			dist_to_line = 
+				(image_height - line_polynom[3]) / PIXEL_CM_RATIO_Y;
 		}
 		else
 		{
@@ -183,8 +174,37 @@ void imageCb(const sensor_msgs::ImageConstPtr& msg)
 	end_time = cv::getTickCount();
 	elapsed_time = (end_time - start_time) / cv::getTickFrequency();
 
+	// Print debug information
 	if (DEBUG)
 	{
+		// Print line points
+		if (!(line_points.empty()))
+		{
+			// Draw initial point
+			cv::circle(image, cv::Point(line_points.front()), 
+				3, 255, -1);
+			
+			// Draw the line points rest found
+			for (std::vector<cv::Point>::iterator point = 
+				line_points.begin() ; 
+				point != line_points.end(); ++point)
+				cv::circle(image, *point, 1, 255, -1);
+		}
+
+		// Print the line polynom paramtrization 
+		if (dist_to_line != NO_LINE_DIST)
+		{
+			cv::line(
+				image,
+				cv::Point(line_polynom[2], line_polynom[3]),
+				cv::Point(line_polynom[2] + line_polynom[0]*50, line_polynom[3] + line_polynom[1]*50),
+				0);
+			cv::circle(
+				image,
+				cv::Point(line_polynom[2], line_polynom[3]),
+				1,0,-1);
+		}
+
 		// Print debug info 
 		ROS_INFO(" frame time: %.4f ----- block end", elapsed_time);
 		cv::imshow(CROSSING_DETECTION_WINDOW, image);
