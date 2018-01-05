@@ -19,7 +19,7 @@ int const LEFT_LANE_ORIGIN = RIGHT_LANE_ORIGIN - LANE_WIDTH;
 float const IMAGE_PERCENTAGE = 0.75;
 int const ROW_STEP = 4;
 int const SEARCH_RANGE = 10;
-int const ALLOWED_DEVIATION = LANE_WIDTH/4;
+int const ALLOWED_DEVIATION = LANE_WIDTH/2;
 int const FILTER_KERNEL_SIZE = 5;
 int const GRAY_THRESHOLD = 50;
 int const MAX_PEAK_HEIGHT = 25;
@@ -58,12 +58,12 @@ int CalculateServoPWM(
 		  
 	if (curvature_degree>110 || curvature_degree<90)
     {
-		pe = 1.25;
-		pp = 1;
+		pe = 1.3;
+		pp = 1.1;
     }
 	else	
 	{
-        pe = 0.3;
+        pe = 0.45;
 		pp = 1;
     }
 		  

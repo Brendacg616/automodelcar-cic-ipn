@@ -13,6 +13,8 @@ float scale_x, scale_y;
 
 // Debug global variables
 bool CALIBRATION = false;
+bool ON_CAR = true;
+int LANE_WIDTH = 100;
 static const std::string CALIBRATION_WINDOW = "Camera Calibration";
 
 class ImageProssesing
@@ -29,10 +31,19 @@ public:
     : it_(nh_)
   {
     // Subscriber
-    image_sub_ = it_.subscribe(
-      "/app/camera/rgb/image_raw", 1, 
-      &ImageProssesing::imageCb, this, 
-      image_transport::TransportHints("compressed"));
+    if (ON_CAR)
+    {
+      image_sub_ = it_.subscribe(
+        "/app/camera/rgb/image_raw", 1, 
+        &ImageProssesing::imageCb, this);
+    }
+    else 
+    {
+      image_sub_ = it_.subscribe(
+        "/app/camera/rgb/image_raw", 1, 
+        &ImageProssesing::imageCb, this, 
+        image_transport::TransportHints("compressed"));
+    }
     
     // Publisher
     image_pub_ = it_.advertise("/image_processed", 1); 
@@ -141,30 +152,21 @@ void imageCb(const sensor_msgs::ImageConstPtr& msg)
       int half_height = image_height/2;
 
       // Draw vertical lines
+      cv::line(wrapped_image, 
+        cv::Point(half_width + LANE_WIDTH/2, 0), 
+        cv::Point(half_width + LANE_WIDTH/2, image_height), 
+        255);
+      cv::line(wrapped_image, 
+        cv::Point(half_width - LANE_WIDTH/2, 0), 
+        cv::Point(half_width - LANE_WIDTH/2, image_height), 
+        255);       
+
       int i = 0;
-      while (i <= (35*pixel_cm_ratio_x)/2)
-      {
-        cv::line(wrapped_image, 
-          cv::Point(half_width + i, 0), 
-          cv::Point(half_width + i, image_height), 
-          255);
-        cv::line(wrapped_image, 
-          cv::Point(half_width - i, 0), 
-          cv::Point(half_width - i, image_height), 
-          255);
-        i = i + (5*pixel_cm_ratio_x);
-      }
-      
-      i = 0;
       while (i <= (35*pixel_cm_ratio_y)/2)
       {
         cv::line(wrapped_image, 
           cv::Point(0,half_height + i), 
           cv::Point(image_width,half_height+i), 
-          255);
-        cv::line(wrapped_image, 
-          cv::Point(0,half_height - i), 
-          cv::Point(image_width,half_height - i), 
           255);
         i = i + (5*pixel_cm_ratio_y);
       }
@@ -189,7 +191,9 @@ int main(int argc, char** argv)
   ROS_INFO(" ImageProcessing node running ...");
 
   // Get parameters from launch
+  ros::param::get("~run_on_car", ON_CAR);
   ros::param::get("~calibration_mode", CALIBRATION);
+  ros::param::get("~lane_width", LANE_WIDTH);
   ros::param::get("~pixel_cm_ratio_x", pixel_cm_ratio_x);
   ros::param::get("~pixel_cm_ratio_y", pixel_cm_ratio_y);
   ros::param::get("~scale_x", scale_x);

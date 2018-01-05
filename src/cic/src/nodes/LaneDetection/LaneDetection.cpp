@@ -184,7 +184,7 @@ void imageCb(const sensor_msgs::ImageConstPtr& msg)
 	}
 	else{
 		if (speed_PWM.data < 0)
-			speed_PWM.data += SPEED_DECREASE_STEP;
+			speed_PWM.data = -200;
 	}
 
 	// Messages publication

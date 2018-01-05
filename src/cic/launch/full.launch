@@ -5,9 +5,11 @@
           pkg="cic" 
           type="ImageProcessing">
       <!-- Set Parameters for Image Processing node -->
+      <param name="run_on_car" value="true" type="bool" />
       <param name="calibration_mode" value="false" type="bool" />
-      <param name="pixel_cm_ratio_x" value="4" type="int" />
-      <param name="pixel_cm_ratio_y" value="6" type="int" />
+      <param name="lane_width" value="100" type="int" />
+      <param name="pixel_cm_ratio_x" value="3" type="int" />
+      <param name="pixel_cm_ratio_y" value="8" type="int" />
       <param name="scale_x" value="0.4" type="double" />
       <param name="scale_y" value="1.2" type="double" />
       <param name="p1" value="45" type="int" />
@@ -20,9 +22,9 @@
           pkg="cic" 
           type="LaneDetection">
       <!-- Set Parameters for LaneDetection node -->
-      <param name="debug_mode" value="true" type="bool" />
-      <param name="direct_mode" value="false" type="bool" />
-      <param name="max_vel" value="-1000" type="int" />
+      <param name="debug_mode" value="false" type="bool" />
+      <param name="direct_mode" value="true" type="bool" />
+      <param name="max_vel" value="-800" type="int" />
       <param name="steering_speed_ratio" value="1.5" type="double" />
       <param name="lane_width" value="110" type="int" />
       <param name="servo_center_position" value="90" type="int" />
@@ -36,6 +38,6 @@
           pkg="cic" 
           type="CrossingDetection">
       <!-- Set Parameters for CrossingDetection node -->
-      <param name="debug_mode" value="true" type="bool" />
+      <param name="debug_mode" value="false" type="bool" />
       </node>
 </launch>

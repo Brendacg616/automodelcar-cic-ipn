@@ -13,4 +13,4 @@ case $i in
 esac
 done
 
-catkin_make -DCMAKE_BUILD_TYPE=${BUILD_TYPE}
+catkin_make --pkg cic -DCMAKE_BUILD_TYPE=${BUILD_TYPE}
