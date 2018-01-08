@@ -191,9 +191,9 @@ int main(int argc, char** argv)
   ROS_INFO(" ImageProcessing node running ...");
 
   // Get parameters from launch
-  ros::param::get("~run_on_car", ON_CAR);
+  ros::param::get("/run_on_car", ON_CAR);
+  ros::param::get("/lane_width", LANE_WIDTH);
   ros::param::get("~calibration_mode", CALIBRATION);
-  ros::param::get("~lane_width", LANE_WIDTH);
   ros::param::get("~pixel_cm_ratio_x", pixel_cm_ratio_x);
   ros::param::get("~pixel_cm_ratio_y", pixel_cm_ratio_y);
   ros::param::get("~scale_x", scale_x);

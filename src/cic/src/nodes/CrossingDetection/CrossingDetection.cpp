@@ -221,7 +221,7 @@ int main(int argc, char** argv)
 	ROS_INFO("CrossingDetection node running...");
 
 	// Get parameters from launch
-	ros::param::get("~debug_mode", DEBUG);
+	ros::param::get("/debug_mode", DEBUG);
 	
 	CrossingDetection cd;
   	ros::spin();

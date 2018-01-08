@@ -2,6 +2,8 @@
 
 clear
 
+chmod +x src/cic/src/nodes/Master/Master.py
+
 if [ -f "devel/setup.sh" ]; then
    source devel/setup.bash
 else

@@ -230,17 +230,17 @@ int main(int argc, char** argv)
 	ROS_INFO("LaneDetection node running...");
 
 	// Get parameters from launch
-	ros::param::get("~debug_mode", DEBUG);
+	ros::param::get("/debug_mode", DEBUG);
+	ros::param::get("/lane_width", LANE_WIDTH);
 	ros::param::get("~direct_mode", DIRECT_CONTROL);
 	ros::param::get("~max_vel", MAX_VEL);
 	ros::param::get("~steering_speed_ratio", STEERING_SPEED_RATIO);
-	ros::param::get("~lane_width", LANE_WIDTH);
 	ros::param::get("~servo_center_position", SERVO_CENTER);
-	ros::param::get("~servo_step", SERVO_STEP);
+	ros::param::get("~sevo_step", SERVO_STEP);
 	ros::param::get("~drive_right_lane", DRIVE_RIGHT_LANE);
-	ros::param::get("~max_steering_angle_right", 
+	ros::param::get("/max_steering_angle_right", 
 		MAX_STEERING_ANGLE_RIGHT);
-	ros::param::get("~max_steering_angle_left", 
+	ros::param::get("/max_steering_angle_left", 
 		MAX_STEERING_ANGLE_LEFT);
 
 	last_center_position = DRIVE_RIGHT_LANE == true? 
