@@ -101,7 +101,7 @@ void imageCb(const sensor_msgs::ImageConstPtr& msg)
 			(std::vector<int>) transposed_image.row(current_column).colRange(0, image_height);
 		// Search for local maxima
 		local_maxima_found = 
-			LocMax_pw(image_column, MAX_PEAK_HEIGHT, MAX_PEAK_WIDTH);
+			LocMax_pw(image_column, MIN_PEAK_HEIGHT, MAX_PEAK_HEIGHT, MIN_PEAK_WIDTH, MAX_PEAK_WIDTH);
 		// Local maxima validation (if found)
 		if (!(local_maxima_found.empty()))
 		{
