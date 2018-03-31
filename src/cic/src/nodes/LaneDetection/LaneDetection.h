@@ -239,7 +239,7 @@ void LineDetection(
 			(std::vector<int>) image.row(current_row).colRange(right_index, image_width);
 		// Search for local maxima
 		local_maxima_found = 
-			LocMax_pw(image_row_vector, MAX_PEAK_HEIGHT, MAX_PEAK_WIDTH);
+			LocMax_pw(image_row_vector, MIN_PEAK_HEIGHT, MAX_PEAK_HEIGHT, MIN_PEAK_WIDTH, MAX_PEAK_WIDTH);
 		// Local maxima validation (if found)
 		LocalMaximaValidation(
 			RIGHT_LINE,
@@ -257,7 +257,7 @@ void LineDetection(
 			(std::vector<int>) image.row(current_row).colRange(0, left_index);
 		// Search for local maxima
 		local_maxima_found = 
-			LocMax_pw(image_row_vector, MAX_PEAK_HEIGHT, MAX_PEAK_WIDTH);
+			LocMax_pw(image_row_vector, MIN_PEAK_HEIGHT, MAX_PEAK_HEIGHT, MIN_PEAK_WIDTH, MAX_PEAK_WIDTH);
 		// Local maxima validation (if found)
 		LocalMaximaValidation(
 			LEFT_LINE,
